@@ -7,27 +7,57 @@ from sqlalchemy import Column, ForeignKey, func
 from sqlalchemy import Integer, String, Boolean, DateTime
 
 from settings import db_path
-from settings import debug
+if __name__ == '__main__':
+	debug = True
+else:
+	from settings import debug
 
 Base = declarative_base()
 
 engine = create_engine(db_path, echo=debug)
 
-class Organisations(Base):
-	__tablename__ = 'organisations'
+class Organisation(Base):
+	__tablename__ = 'organisation'
 
 	id = Column(Integer, primary_key=True)
 
 	name = Column(String)
 	name_norm = Column(String)
 	# account = Column(String)
-	jurisdiction = Column(String)
+	# jurisdiction = Column(String)
 	# bank_country = Column(String) # automatically extracted, TBV
 	org_type = Column(String) # Company, Person, Invalid
 	core = Column(Boolean)
 
-class Accounts(Base):
-	__tablename__ = 'accounts'
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+
+class Alias(Base):
+	__tablename__ = 'alias'
+
+	id = Column(Integer, primary_key=True)
+
+	alias = Column(String, unique=True)
+
+	org_id = Column(Integer, ForeignKey("organisation.id"))
+
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+
+class Jurisdiction(Base):
+	__tablename__ = 'jurisdiction'
+
+	id = Column(Integer, primary_key=True)
+
+	country = Column(String)
+
+	org_id = Column(Integer, ForeignKey("organisation.id"))
+
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+
+class Account(Base):
+	__tablename__ = 'account'
 
 	id = Column(Integer, primary_key=True)
 
@@ -35,10 +65,55 @@ class Accounts(Base):
 	acc_type = Column(String) # IBAN, SWIFT, CASH, LOCAL # see service.account_type
 	jurisdiction = Column(String)
 
-	owner_id = Column(Integer, ForeignKey("organisations.id"))
+	owner_id = Column(Integer, ForeignKey("organisation.id"))
 
-class Transactions(Base):
-	__tablename__ = 'transactions'
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+
+class AccountDetail(Base):
+	__tablename__ = 'account_detail'
+
+	id = Column(Integer, primary_key=True)
+
+	code = Column(String, unique=True)
+	code_local = Column(String)
+	jurisdiction = Column(String)
+	checksum = Column(String)
+	bank_code = Column(String)
+	account = Column(String)
+	check_digit = Column(String)
+	sepa = Column(Boolean)
+	currency = Column(String)
+
+	validity = Column(String) # contains "True" if valid, explanation otherwise
+
+	account_id = Column(Integer, ForeignKey("account.id"))
+	bank_id = Column(Integer, ForeignKey("bank.id"))
+
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+
+class Bank(Base):
+
+	__tablename__ = 'bank'
+
+	id = Column(Integer, primary_key=True)
+
+	code = Column(String, unique=True)
+	name = Column(String)
+	city = Column(String)
+	branch = Column(String)
+	address = Column(String)
+	postcode = Column(String)
+	jurisdiction = Column(String)
+
+	validity = Column(String) # contains "True" if valid, explanation otherwise
+
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+
+class Transaction(Base):
+	__tablename__ = 'transaction'
 
 	id = Column(Integer, primary_key=True)
 
@@ -72,8 +147,11 @@ class Transactions(Base):
 	date = Column(DateTime, default=func.current_timestamp())
 	source_file = Column(String)
 
-	from_account_id = Column(Integer, ForeignKey("accounts.id"))
-	to_account_id = Column(Integer, ForeignKey("accounts.id"))
+	from_account_id = Column(Integer, ForeignKey("account.id"))
+	to_account_id = Column(Integer, ForeignKey("account.id"))
+
+	date_created = Column(DateTime, default=func.current_timestamp())
+
 
 Session = sessionmaker(bind=engine)
 

@@ -34,6 +34,19 @@ def parse_amount(s):
 		v = s
 	return int(float(v) * 100)
 
+def account_type(code):
+	"""Assuming code is normalised"""
+	if not code or is_blank(code):
+		return "CASH" 
+	if code[0:2].isalpha():
+		if code[2:4].isdigit():
+			return "IBAN"
+		elif code[2:4].isalpha() and len(code) >= 8:
+			return "SWIFT"
+	elif code[0:2].isdigit():
+		return "LOCAL"
+	return "CASH"
+
 def get_cached(filename, url):
 	if path.isfile(filename):
 		with open(filename, 'r') as f:

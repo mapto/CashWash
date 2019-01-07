@@ -6,16 +6,16 @@ from datetime import datetime
 
 import requests
 
-from settings import dateformat
+from settings import dateformat, data_path
 
 import util
 
-from db import Organisations, Accounts, Transactions
+# from db import Organisation, Account, Transaction
 
 import service
 
 laundromat_url = 'https://cdn.occrp.org/projects/azerbaijanilaundromat/interactive/dkdata.json'
-laundromat_json = "data/laundromat.json"
+laundromat_json = data_path + "laundromat.json"
 
 
 def read_org(row, role):
@@ -32,7 +32,7 @@ def read_org(row, role):
 def read_account(row, org, role):
 	code = str(row[role + "_account"])
 	code = re.sub(r"\s" , "", code)
-	acc_type = service.account_type(code)
+	acc_type = util.account_type(code)
 	if acc_type in ["IBAN", "SWIFT"]:
 		country = code[0:2]
 	else:
