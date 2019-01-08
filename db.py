@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 
 from sqlalchemy import create_engine
-from sqlalchemy.orm import sessionmaker
+from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, func 
 from sqlalchemy import Integer, String, Boolean, DateTime
@@ -16,22 +16,6 @@ Base = declarative_base()
 
 engine = create_engine(db_path, echo=debug)
 
-class Organisation(Base):
-	__tablename__ = 'organisation'
-
-	id = Column(Integer, primary_key=True)
-
-	name = Column(String)
-	name_norm = Column(String)
-	# account = Column(String)
-	# jurisdiction = Column(String)
-	# bank_country = Column(String) # automatically extracted, TBV
-	org_type = Column(String) # Company, Person, Invalid
-	core = Column(Boolean)
-
-	date_created = Column(DateTime, default=func.current_timestamp())
-
-
 class Alias(Base):
 	__tablename__ = 'alias'
 
@@ -40,8 +24,31 @@ class Alias(Base):
 	alias = Column(String, unique=True)
 
 	org_id = Column(Integer, ForeignKey("organisation.id"))
+	country_id = Column(Integer, ForeignKey("jurisdiction.id"))
 
 	date_created = Column(DateTime, default=func.current_timestamp())
+
+	organisation = relationship("Organisation", back_populates="aliases")
+	jurisdiction = relationship("Jurisdiction", back_populates="aliases")
+	#jurisdiction = relationship("Jurisdiction")
+
+
+class Organisation(Base):
+	__tablename__ = 'organisation'
+
+	id = Column(Integer, primary_key=True)
+
+	name = Column(String) # preferred name
+	# account = Column(String)
+	# jurisdiction = Column(String)
+	# bank_country = Column(String) # automatically extracted, TBV
+	org_type = Column(String) # Company, Person, Invalid
+	core = Column(Boolean)
+
+	date_created = Column(DateTime, default=func.current_timestamp())
+
+	accounts = relationship("Account", back_populates="organisation")
+	aliases = relationship("Alias", back_populates="organisation")
 
 
 class Jurisdiction(Base):
@@ -51,9 +58,8 @@ class Jurisdiction(Base):
 
 	country = Column(String)
 
-	org_id = Column(Integer, ForeignKey("organisation.id"))
-
-	date_created = Column(DateTime, default=func.current_timestamp())
+	aliases = relationship("Alias", back_populates="jurisdiction")
+	banks = relationship("Bank", back_populates="jurisdiction")
 
 
 class Account(Base):
@@ -63,11 +69,19 @@ class Account(Base):
 
 	code = Column(String, unique=True)
 	acc_type = Column(String) # IBAN, SWIFT, CASH, LOCAL # see service.account_type
-	jurisdiction = Column(String)
 
+	detail = Column(Integer, ForeignKey("account_detail.id"))
 	owner_id = Column(Integer, ForeignKey("organisation.id"))
+	bank_id = Column(Integer, ForeignKey("bank.id"))
 
 	date_created = Column(DateTime, default=func.current_timestamp())
+
+	bank = relationship("Bank", back_populates="accounts")
+	organisation = relationship("Organisation", back_populates="accounts")
+	detail = relationship("AccountDetail", back_populates="account")
+
+	outgoing = relationship("Transaction", back_populates="payee", foreign_keys="Transaction.payee_id")
+	incoming = relationship("Transaction", back_populates="beneficiary", foreign_keys="Transaction.beneficiary_id")
 
 
 class AccountDetail(Base):
@@ -87,10 +101,11 @@ class AccountDetail(Base):
 
 	validity = Column(String) # contains "True" if valid, explanation otherwise
 
-	account_id = Column(Integer, ForeignKey("account.id"))
-	bank_id = Column(Integer, ForeignKey("bank.id"))
+	account_id = Column(Integer, ForeignKey("account.id"), nullable=False)
 
 	date_created = Column(DateTime, default=func.current_timestamp())
+
+	account = relationship("Account", back_populates="detail")
 
 
 class Bank(Base):
@@ -101,15 +116,17 @@ class Bank(Base):
 
 	code = Column(String, unique=True)
 	name = Column(String)
-	city = Column(String)
-	branch = Column(String)
-	address = Column(String)
-	postcode = Column(String)
-	jurisdiction = Column(String)
+	#city = Column(String)
+	#branch = Column(String)
+	#address = Column(String)
+	#postcode = Column(String)
 
-	validity = Column(String) # contains "True" if valid, explanation otherwise
+	country_id = Column(Integer, ForeignKey("jurisdiction.id"))
 
 	date_created = Column(DateTime, default=func.current_timestamp())
+
+	jurisdiction = relationship("Jurisdiction", back_populates="banks")
+	accounts = relationship("Account", back_populates="bank")
 
 
 class Transaction(Base):
@@ -147,10 +164,13 @@ class Transaction(Base):
 	date = Column(DateTime, default=func.current_timestamp())
 	source_file = Column(String)
 
-	from_account_id = Column(Integer, ForeignKey("account.id"))
-	to_account_id = Column(Integer, ForeignKey("account.id"))
+	payee_id = Column(Integer, ForeignKey(Account.id))
+	beneficiary_id = Column(Integer, ForeignKey(Account.id))
 
 	date_created = Column(DateTime, default=func.current_timestamp())
+
+	payee = relationship("Account", back_populates="outgoing", foreign_keys="Transaction.payee_id")
+	beneficiary = relationship("Account", back_populates="incoming", foreign_keys="Transaction.beneficiary_id")
 
 
 Session = sessionmaker(bind=engine)

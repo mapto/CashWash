@@ -3,6 +3,8 @@ import requests
 import json
 import re
 
+blanks = ["NONE", "NULL", "UNKNOWN"]
+
 def list2csv(l, filename):
 	with open(filename, 'w') as f:
 		f.write("\n".join(l))
@@ -24,7 +26,7 @@ def csv2list(filename):
 		lines = f.read().splitlines()
 
 def is_blank(s):
-	return not s or s.upper() in ["NONE", "NULL", "UNKNOWN"] 
+	return not s or s.upper() in blanks
 
 def parse_amount(s):
 	try:
@@ -33,19 +35,6 @@ def parse_amount(s):
 	except TypeError: # not a string
 		v = s
 	return int(float(v) * 100)
-
-def account_type(code):
-	"""Assuming code is normalised"""
-	if not code or is_blank(code):
-		return "CASH" 
-	if code[0:2].isalpha():
-		if code[2:4].isdigit():
-			return "IBAN"
-		elif code[2:4].isalpha() and len(code) >= 8:
-			return "SWIFT"
-	elif code[0:2].isdigit():
-		return "LOCAL"
-	return "CASH"
 
 def get_cached(filename, url):
 	if path.isfile(filename):
