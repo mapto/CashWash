@@ -1,6 +1,3 @@
-from os import path
-import requests
-import json
 import re
 
 blanks = ["NONE", "NULL", "UNKNOWN"]
@@ -30,22 +27,9 @@ def is_blank(s):
 
 def parse_amount(s):
 	try:
-		v = re.sub(r"\$", "", s)
-		v = re.sub(r"\,", "", v)
+		v = re.sub(r"\$|\,", "", s)
+		#v = re.sub(r"\$", "", s)
+		#v = re.sub(r"\,", "", v)
 	except TypeError: # not a string
 		v = s
 	return int(float(v) * 100)
-
-def get_cached(filename, url):
-	if path.isfile(filename):
-		with open(filename, 'r') as f:
-			data = json.load(f)
-	else:
-		response = requests.get(url)
-		response.raise_for_status()
-		data = response.json()
-		with open(filename, 'w') as f:
-			json.dump(data, f)
-
-	return data
-

@@ -87,7 +87,7 @@ def json2db(data):
 		read_transaction(row, from_acc, to_acc)
 
 if __name__ == '__main__':
-	data = util.get_cached(laundromat_json, laundromat_url)
+	data = util.get_json_cached(laundromat_json, laundromat_url)
 
 	json2db(data["data"])
 

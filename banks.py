@@ -4,6 +4,8 @@ from db import Account, Transaction, Bank
 from dataclean import clean_name
 from util import is_blank
 
+import api_bank_codes
+
 def upsert_account(code, acc_type, bank, company):
 	"""Atomic operation
 	includes commit
@@ -86,6 +88,6 @@ def account_country(code):
 
 def account_bank_code(code):
 	acc_type = account_type(code)
-	if acc_type == "SWIFT":
-		return code[:4]
+	if acc_type in ["IBAN", "SWIFT"]:
+		return api_bank_codes.get_account_bank(code)
 	return None

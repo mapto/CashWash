@@ -1,27 +1,31 @@
 #!/usr/bin/env python3
 
+import os
+
+from datetime import datetime
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy import Column, ForeignKey, func 
 from sqlalchemy import Integer, String, Boolean, DateTime
 
-from settings import db_path
-if __name__ == '__main__':
-	debug = True
-else:
-	from settings import debug
+from settings import db_url, db_path, dateformat_log
+
+from settings import debug
+# from settings import debug as settings_debug
+# debug = __name__ == '__main__' or settings_debug
 
 Base = declarative_base()
 
-engine = create_engine(db_path, echo=debug)
+engine = create_engine(db_url, echo=debug)
 
 class Alias(Base):
 	__tablename__ = 'alias'
 
 	id = Column(Integer, primary_key=True)
 
-	alias = Column(String, unique=True)
+	alias = Column(String) # TODO: unique per country
 
 	org_id = Column(Integer, ForeignKey("organisation.id"))
 	country_id = Column(Integer, ForeignKey("jurisdiction.id"))
@@ -178,7 +182,12 @@ Session = sessionmaker(bind=engine)
 session = Session()
 
 if __name__ == '__main__':
-	print("Creating database at: %s" % db_path)
+	if os.path.exists(db_path):
+		backup = "%s.%s.%s" % (db_path[:-3], datetime.now().strftime(dateformat_log), db_path[-2])
+		print("Backup previous database at: %s" % backup)
+		os.rename(db_path, backup)
+
+	print("Creating database at: %s" % db_url)
 	Base.metadata.create_all(engine)
 	
 	#session = Session()
