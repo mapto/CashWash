@@ -22,21 +22,3 @@ autoalias_py = "autoalias.py"
 dateformat = "%Y-%m-%d"
 dateformat_log = "%Y%m%d%H%M%S"
 
-# TODO: Make country-dependent dictionary
-'''
-legal_forms = {\
-	"IT": ["SPA", "SRL"],\
-	"GB": ["SPA", "SRL"],\
-	"DE": ["SPA", "SRL"],\
-	"CZ": ["DOO"],\
-}
-'''
-legal_form = []
-'''
-legal_form =\
-	['LTD', 'LIMITED', 'LLP', 'LLC', 'LP',\
-	'GMBH', 'ZOO', 'AG', 'AS', 'SPA', 'SL', 'SRL', 'SAS', 'SA', \
-	'INC', 'CO', 'CORP', 'BVBA',\
-	'BV', 'HK']
-	# TODO: remove CO
-'''

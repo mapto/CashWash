@@ -14,12 +14,16 @@ import banks
 
 bank_codes_path = data_path + 'bank_codes/'
 
+# see documentation at
+# https://bank.codes/api-iban/
+# https://bank.codes/api-swift-code/
+
 iban_url = 'https://api.bank.codes/iban/json/%s/' % api_key
 swift_url = 'https://api.bank.codes/swift/json/%s/' % api_key
 
 urls = {"IBAN": iban_url, "SWIFT": swift_url}
 
-datestamp = datetime.now().strftime(dateformat_log[:8])
+datestamp = datetime.now().strftime(dateformat_log[:6])
 
 #query_limit = 50
 query_limit = 20
@@ -94,8 +98,14 @@ if __name__ == '__main__':
 	print(get_account_bank("IT78T0605569721000000001000"))
 	print(get_account_country("IT78T0605569721000000001000"))
 
-	print(get_account_bank("DEUTDEFFXXX"))
-	print(get_account_country("DEUTDEFFXXX"))
+	swifts = ["BARCGB22", "BOTKGB2L", "COBADEFFXXX", "BKCHCNBJ", "BKCHHKHH",\
+		"BKTRUS33" "DEUTDEFFXXX", "BOFAUS3N", "HASEHKHH", "HEBACY2N", "HSBCHKHHHKH",\
+		"HSBCHKHHHKH", "AIZKLV22XXX", "HYIBLI22", "IDBLILIT", "KABANL2A",\
+		"NORSDE71", "NRAKAEAK", "OWHBDEFF", "PAHAAZ22", "TDOMUS33", "UBSWCHZH80A",\
+		"UFUKBORU", "VOAGLI22", "YAPITRIS"]
+	for next in swifts:
+		print(get_account_bank(next))
+		print(get_account_country(next))
 
 	print(get_account_bank("TR410012300615100016777301"))
 	print(get_account_bank("AE710200000025597675100"))

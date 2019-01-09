@@ -118,7 +118,7 @@ class Bank(Base):
 
 	id = Column(Integer, primary_key=True)
 
-	code = Column(String, unique=True)
+	code = Column(String) # TODO make unique
 	name = Column(String)
 	#city = Column(String)
 	#branch = Column(String)
@@ -138,30 +138,10 @@ class Transaction(Base):
 
 	id = Column(Integer, primary_key=True)
 
-	'''
-	payer_name = Column(String)
-	payer_name_norm = Column(String)
-	payer_account = Column(String)
-	payer_jurisdiction = Column(String)
-	payer_bank_country = Column(String) # automatically extracted, TBV
-	payer_type = Column(String)
-	payer_core = Column(Boolean)
-	'''
-
 	amount_orig = Column(Integer)
 	amount_usd = Column(Integer)
 	amount_eur = Column(Integer)
 	amount_orig_currency = Column(Integer)
-
-	'''
-	beneficiary_name = Column(String)
-	beneficiary_name_norm = Column(String)
-	beneficiary_account = Column(String)
-	beneficiary_jurisdiction = Column(String)
-	beneficiary_bank_country = Column(String)
-	beneficiary_type = Column(String)
-	beneficiary_core = Column(Boolean)
-	'''
 
 	investigation = Column(String)
 	purpose = Column(String)
@@ -183,7 +163,7 @@ session = Session()
 
 if __name__ == '__main__':
 	if os.path.exists(db_path):
-		backup = "%s.%s.%s" % (db_path[:-3], datetime.now().strftime(dateformat_log), db_path[-2])
+		backup = "%s.%s.%s" % (db_path[:-3], datetime.now().strftime(dateformat_log), db_path[-2:])
 		print("Backup previous database at: %s" % backup)
 		os.rename(db_path, backup)
 

@@ -30,10 +30,10 @@ def upsert_account(code, acc_type, bank, company):
 
 	return acc
 
-def upsert_bank(jurisdiction, bank_code=None):
+def upsert_bank(jurisdiction, bank_code=None, name=None):
 	bank = get_bank(jurisdiction, bank_code)
 	if not bank:
-		bank = Bank(code=bank_code, jurisdiction=jurisdiction)
+		bank = Bank(code=bank_code, name=None, jurisdiction=jurisdiction)
 
 		s.add(bank)
 		s.commit()
@@ -72,7 +72,7 @@ def account_type(code):
 	if code[0:2].isalpha():
 		if code[2:4].isdigit():
 			return "IBAN"
-		elif code[2:4].isalpha() and len(code) >= 8:
+		elif code[2:4].isalpha() and len(code) in [8,11]:
 			return "SWIFT"
 	elif code[0:2].isdigit():
 		return "LOCAL"
@@ -88,6 +88,10 @@ def account_country(code):
 
 def account_bank_code(code):
 	acc_type = account_type(code)
-	if acc_type in ["IBAN", "SWIFT"]:
+	if acc_type == "IBAN":
+		return api_bank_codes.get_account_bank(code)
+	if acc_type == "SWIFT":
+		#if len(code) == 8:
+		#	code = code + "XXX"
 		return api_bank_codes.get_account_bank(code)
 	return None

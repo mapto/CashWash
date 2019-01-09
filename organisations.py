@@ -9,7 +9,6 @@ def upsert_organisation(name, org_type, core):
 	Update not implemented
 	"""
 
-	name = clean_name(name)
 	org = organisation_by_name(name)
 	if org:
 		#if name_norm != None and name_norm != org.name_norm:

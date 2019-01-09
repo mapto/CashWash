@@ -3,16 +3,16 @@ import string
 from alias import alias
 import string
 
-from settings import legal_form
+from legal_forms import legal_forms
 
-def normalize(text):
+def normalize(name, jurisdiction = None):
 	# remove_punct_dict = dict((ord(punct), None) for punct in string.punctuation)
 	str_from = string.punctuation + string.ascii_lowercase
 	str_to = ' '*len(string.punctuation) + string.ascii_uppercase
 	translator = str.maketrans(str_from, str_to)
 
-	#tokens = nltk.word_tokenize(text.translate(translator))
-	tokens = text.translate(translator).split(" ")
+	#tokens = nltk.word_tokenize(name.translate(translator))
+	tokens = name.translate(translator).split(" ")
 	words = []; letters = []
 	for x in tokens:
 		if len(x) == 1:
@@ -26,18 +26,21 @@ def normalize(text):
 		words.append("".join(letters))
 
 	result = []
-	for x in words:
-		if x not in legal_form:
-			result.append(x)
-	
+	if jurisdiction and jurisdiction in legal_forms.keys():
+		result = [w for w in words if w not in legal_forms[jurisdiction]]
+		#for x in words:
+		#	if x not in legal_forms[jurisdiction]:
+		#		result.append(x)
+	else:
+		result = words	
 	'''
 	if words[-1] in legal_form:
 		words = words[:-1]
 	'''
 	return " ".join(result)
 
-def clean_name(name):
-	result = normalize(name)
+def clean_name(name, jurisdiction=None):
+	result = normalize(name, jurisdiction)
 	return alias[result] if result in alias else result
 
 def clean_names(df):
