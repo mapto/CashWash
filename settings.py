@@ -11,10 +11,10 @@ path.curdir = curdir
 data_path = curdir + "/data/"
 
 db_path = data_path + 'CashWash.db'
-db_url = 'sqlite:///' + db_path
+db_url = 'sqlite:///' + db_path + '?check_same_thread=False'
 
-#debug = True
-debug = False
+debug = True
+#debug = False
 
 intermediaries_csv = data_path +'intermediaries.csv'
 autoalias_py = "autoalias.py"

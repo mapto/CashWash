@@ -7,6 +7,7 @@ from datetime import datetime
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.pool import SingletonThreadPool
 from sqlalchemy import Column, ForeignKey, func 
 from sqlalchemy import Integer, String, Boolean, DateTime
 
@@ -18,7 +19,7 @@ from settings import debug
 
 Base = declarative_base()
 
-engine = create_engine(db_url, echo=debug)
+engine = create_engine(db_url, echo=debug, poolclass=SingletonThreadPool)
 
 class Alias(Base):
 	__tablename__ = 'alias'
@@ -54,6 +55,12 @@ class Organisation(Base):
 	accounts = relationship("Account", back_populates="organisation")
 	aliases = relationship("Alias", back_populates="organisation")
 
+	def __repr__(self):
+		# return str({"name": self.name, "accounts": self.accounts, "aliases": self.aliases,\
+		#	"date": self.date_created.date().isoformat()})
+		#return str({"name": self.name, "date": self.date_created.date().isoformat()})
+		return self.name
+
 
 class Jurisdiction(Base):
 	__tablename__ = 'jurisdiction'
@@ -86,6 +93,10 @@ class Account(Base):
 
 	outgoing = relationship("Transaction", back_populates="payee", foreign_keys="Transaction.payee_id")
 	incoming = relationship("Transaction", back_populates="beneficiary", foreign_keys="Transaction.beneficiary_id")
+
+	def __repr__(self):
+		return str({"code": self.code, "organisation": self.organisation,\
+			"date": self.date_created.date().isoformat()})
 
 
 class AccountDetail(Base):
@@ -155,6 +166,11 @@ class Transaction(Base):
 
 	payee = relationship("Account", back_populates="outgoing", foreign_keys="Transaction.payee_id")
 	beneficiary = relationship("Account", back_populates="incoming", foreign_keys="Transaction.beneficiary_id")
+
+	def __repr__(self):
+		return str({"amount_usd": self.amount_usd, "amount": self.amount_orig,\
+			"date": self.date_created.date().isoformat(),\
+			"payee": self.payee, "beneficiary": self.beneficiary})
 
 
 Session = sessionmaker(bind=engine)

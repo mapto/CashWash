@@ -94,3 +94,11 @@ def account_bank_code(code):
 		#	code = code + "XXX"
 		return api_bank_codes.get_account_bank(code)
 	return None
+
+
+def get_transactions(page_num=0, page_size=25):
+	offset = page_num * page_size
+	#filter(Bank.jurisdiction == jurisdiction).\
+	return s.query(Transaction).\
+		order_by(Transaction.amount_usd.desc()).\
+		slice(offset, offset + page_size).all()

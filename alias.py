@@ -61,3 +61,6 @@ alias = {**alias_ziwu, **alias_apollo, **alias_cakrilar, **alias_cvs_hava,\
 **alias_rest, **alias_ppl}
 '''
 alias = autoalias
+
+alias.pop("ESMIRA JAMALKHANOVA", None)
+
