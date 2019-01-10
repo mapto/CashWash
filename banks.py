@@ -68,15 +68,14 @@ def insert_transaction(amount_orig, amount_usd, amount_eur, amount_orig_currency
 def account_type(code):
 	"""Assuming code is normalised"""
 	if not code or is_blank(code):
-		return "CASH" 
+		return "LOCAL" 
 	if code[0:2].isalpha():
 		if code[2:4].isdigit():
 			return "IBAN"
 		elif code[2:4].isalpha() and len(code) in [8,11]:
 			return "SWIFT"
-	elif code[0:2].isdigit():
-		return "LOCAL"
-	return "CASH"
+
+	return "LOCAL"
 
 def account_country(code):
 	acc_type = account_type(code)
