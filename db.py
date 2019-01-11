@@ -3,6 +3,7 @@
 import os
 
 from datetime import datetime
+import json
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, relationship
@@ -16,6 +17,9 @@ from settings import db_url, db_path, dateformat_log
 from settings import debug
 # from settings import debug as settings_debug
 # debug = __name__ == '__main__' or settings_debug
+#debug = False
+
+import util
 
 Base = declarative_base()
 
@@ -56,10 +60,11 @@ class Organisation(Base):
 	aliases = relationship("Alias", back_populates="organisation")
 
 	def __repr__(self):
-		# return str({"name": self.name, "accounts": self.accounts, "aliases": self.aliases,\
-		#	"date": self.date_created.date().isoformat()})
+		return str({"name": self.name, "date": self.date_created.date().isoformat(),\
+			"accounts": [a.code for a in self.accounts],\
+			"aliases": [a.alias for a in self.aliases]})
 		#return str({"name": self.name, "date": self.date_created.date().isoformat()})
-		return self.name
+		#return self.name
 
 
 class Jurisdiction(Base):
@@ -94,9 +99,9 @@ class Account(Base):
 	outgoing = relationship("Transaction", back_populates="payee", foreign_keys="Transaction.payee_id")
 	incoming = relationship("Transaction", back_populates="beneficiary", foreign_keys="Transaction.beneficiary_id")
 
-	def __repr__(self):
-		return str({"code": self.code, "organisation": self.organisation,\
-			"date": self.date_created.date().isoformat()})
+	def json(self):
+		return {"code": self.code, "organisation": self.organisation,\
+			"date": self.date_created.date().isoformat()}
 
 
 class AccountDetail(Base):
@@ -152,7 +157,7 @@ class Transaction(Base):
 	amount_orig = Column(Integer)
 	amount_usd = Column(Integer)
 	amount_eur = Column(Integer)
-	amount_orig_currency = Column(Integer)
+	currency = Column(Integer)
 
 	investigation = Column(String)
 	purpose = Column(String)
@@ -167,10 +172,13 @@ class Transaction(Base):
 	payee = relationship("Account", back_populates="outgoing", foreign_keys="Transaction.payee_id")
 	beneficiary = relationship("Account", back_populates="incoming", foreign_keys="Transaction.beneficiary_id")
 
-	def __repr__(self):
-		return str({"amount_usd": self.amount_usd, "amount": self.amount_orig,\
+	'''
+	def json(self):
+		return {"amount_eur": util.format_amount(self.amount_eur), "amount_usd": util.format_amount(self.amount_usd),\
+			"amount": util.format_amount(self.amount_orig), "currency": self.currency,\
 			"date": self.date_created.date().isoformat(),\
-			"payee": self.payee, "beneficiary": self.beneficiary})
+			"payee": self.payee.code, "beneficiary": self.beneficiary.code}
+	'''
 
 
 Session = sessionmaker(bind=engine)

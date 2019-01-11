@@ -1,0 +1,23 @@
+@charset "UTF-8";
+
+@import url('https://fonts.googleapis.com/css?family=Open+Sans|Open+Sans+Condensed:300|Rubik');
+
+body, input, select, textarea {
+	font-family: "Open Sans", Helvetica, sans-serif;
+	font-size: 18.5pt;
+	font-weight: 300;
+	line-height: 1.65;
+}
+
+h1, h2, h3, h4, h5 {
+	font-family: 'Rubik', sans-serif;	
+}
+
+table {
+	font-family: 'Open Sans Condensed', sans-serif;
+}
+/*
+td {
+	font-size: small;
+}
+*/

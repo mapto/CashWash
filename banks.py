@@ -1,3 +1,5 @@
+from sqlalchemy import alias
+
 from db import session as s
 from db import Account, Transaction, Bank
 
@@ -5,6 +7,8 @@ from dataclean import clean_name
 from util import is_blank
 
 import api_bank_codes
+
+# Data interfaces
 
 def upsert_account(code, acc_type, bank, company):
 	"""Atomic operation
@@ -50,13 +54,13 @@ def get_account_by_code(code):
 #def upsert_account_detail(iban, code_local, jurisdiction, checksum,\
 #		d["bank_code"], d["account_number"], sepa, d["currency"], validity)
 
-def insert_transaction(amount_orig, amount_usd, amount_eur, amount_orig_currency,\
+def insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
 		investigation, purpose, date, source_file, from_account, to_account):
 
 	from_acc = get_account_by_code(from_account.code) if from_account else None
 	to_acc = get_account_by_code(to_account.code) if to_account else None
 	trx = Transaction(amount_orig=amount_orig, amount_usd=amount_usd, amount_eur=amount_eur,\
-		amount_orig_currency=amount_orig_currency, investigation=investigation,\
+		currency=currency, investigation=investigation,\
 		purpose=purpose, date=date, source_file=source_file,\
 		payee=from_acc, beneficiary=to_acc)
 
@@ -64,6 +68,8 @@ def insert_transaction(amount_orig, amount_usd, amount_eur, amount_orig_currency
 	s.commit()
 
 	return trx
+
+# Banks util
 
 def account_type(code):
 	"""Assuming code is normalised"""
@@ -95,10 +101,21 @@ def account_bank_code(code):
 		return api_bank_codes.get_account_bank(code)
 	return None
 
+# Public interfaces
 
-def get_transactions(page_num=0, page_size=25):
-	offset = page_num * page_size
-	#filter(Bank.jurisdiction == jurisdiction).\
-	return s.query(Transaction).\
-		order_by(Transaction.amount_usd.desc()).\
-		slice(offset, offset + page_size).all()
+def get_transactions_query():
+	#print(s.query(Transaction).from_self())
+	#[[util.format_amount(t.amount_orig), t.currency, t.payee.code, t.beneficiary.code, t.date.date().isoformat()]\
+	payee = alias(Account, name="payee")
+	beneficiary = alias(Account, name="beneficiary")
+
+	q = s.query(\
+		Transaction.amount_usd.label("amount_usd"),\
+		Transaction.currency,\
+		payee.c.code.label("payee"),\
+		beneficiary.c.code.label("beneficiary"),\
+		Transaction.date).\
+		join(payee, Transaction.payee_id==payee.c.id).\
+		join(beneficiary, Transaction.beneficiary_id==beneficiary.c.id)
+	return q
+	# return Transaction

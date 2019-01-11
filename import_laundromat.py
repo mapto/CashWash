@@ -23,7 +23,8 @@ laundromat_csv = data_path + "laundromat.csv"
 def read_role(row, role):
 	country = row[role + "_jurisdiction"]
 	if len(country) != 2:
-		print("Country %s is not ISO-639-1 code" % country)
+		if not util.is_blank(country):
+			print("Country %s is not ISO-639-1 code" % country)
 		country = None
 
 	name = dataclean.clean_name(row[role + "_name"], country)
@@ -43,8 +44,9 @@ def read_role(row, role):
 	if acc_type == "IBAN":
 		bank_country = code[0:2]
 		if not util.is_blank(bank_country) and acc_country != bank_country:
-			print("Account %s with conflicting bank country: jurisdiction: '%s'; code: '%s'"\
-				%(code, bank_country, acc_country))
+			if not util_is_blank(acc_country):
+				print("Account %s with conflicting bank country: jurisdiction: '%s'; code: '%s'"\
+					%(code, bank_country, acc_country))
 			acc_country = bank_country
 	elif acc_type == "SWIFT":
 		acc_country = code[4:6]		
@@ -76,14 +78,14 @@ def read_transaction(row, from_account, to_account):
 	amount_orig = util.parse_amount(row['amount_orig'])
 	amount_usd = util.parse_amount(row['amount_usd'])
 	amount_eur = util.parse_amount(row['amount_eur'])
-	amount_orig_currency = row['amount_orig_currency']
+	currency = row['amount_orig_currency']
 
 	investigation = row['investigation']
 	purpose = row['purpose']
 	date = datetime.strptime(row['date'], dateformat)
 	source_file = row['source_file']
 
-	return banks.insert_transaction(amount_orig, amount_usd, amount_eur, amount_orig_currency,\
+	return banks.insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
 		investigation, purpose, date, source_file, from_account, to_account)
 
 def json2db(data):

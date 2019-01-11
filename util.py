@@ -1,5 +1,7 @@
 import re
 
+from settings import precision_digits
+
 blanks = ["NONE", "NULL", "UNKNOWN"]
 
 def list2csv(l, filename):
@@ -32,4 +34,8 @@ def parse_amount(s):
 		#v = re.sub(r"\,", "", v)
 	except TypeError: # not a string
 		v = s
-	return int(float(v) * 100)
+	return int(float(v) * (10 ** precision_digits))
+
+def format_amount(d):
+	return ("%." + str(precision_digits) + "f")%(float(d) / (10 ** precision_digits))
+
