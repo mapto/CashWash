@@ -21,7 +21,7 @@ laundromat_csv_url = 'https://public.data.occrp.org/open/Combined%20Laundromats%
 laundromat_csv = data_path + "laundromat.csv"
 
 def read_role(row, role):
-	country = row[role + "_jurisdiction"]
+	country = row[role + "_jurisdiction"].strip()
 	if len(country) != 2:
 		if not util.is_blank(country):
 			print("Country %s is not ISO-639-1 code" % country)
@@ -39,14 +39,15 @@ def read_role(row, role):
 	acc_country = row[role + "_bank_country"]
 
 	bank_name = dataclean.clean_name(row[role + "_bank"], acc_country)
-	bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None
+	bank_code = None
+	#bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None
 
 	if acc_type == "IBAN":
 		bank_country = code[0:2]
 		if not util.is_blank(bank_country) and acc_country != bank_country:
-			if not util_is_blank(acc_country):
+			if not util.is_blank(acc_country):
 				print("Account %s with conflicting bank country: jurisdiction: '%s'; code: '%s'"\
-					%(code, bank_country, acc_country))
+					%(code, acc_country, bank_country))
 			acc_country = bank_country
 	elif acc_type == "SWIFT":
 		acc_country = code[4:6]		

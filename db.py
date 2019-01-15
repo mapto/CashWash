@@ -39,8 +39,10 @@ class Alias(Base):
 
 	organisation = relationship("Organisation", back_populates="aliases")
 	jurisdiction = relationship("Jurisdiction", back_populates="aliases")
-	#jurisdiction = relationship("Jurisdiction")
-
+	
+	def __repr__(self):
+		return json.dumps({"id": id, "alias": alias, "org": org_id, "country": country_id, "date": date_created.date().isoformat()})
+	
 
 class Organisation(Base):
 	__tablename__ = 'organisation'
@@ -60,7 +62,7 @@ class Organisation(Base):
 	aliases = relationship("Alias", back_populates="organisation")
 
 	def __repr__(self):
-		return str({"name": self.name, "date": self.date_created.date().isoformat(),\
+		return json.dumps({"name": self.name, "date": self.date_created.date().isoformat(),\
 			"accounts": [a.code for a in self.accounts],\
 			"aliases": [a.alias for a in self.aliases]})
 		#return str({"name": self.name, "date": self.date_created.date().isoformat()})
@@ -98,6 +100,9 @@ class Account(Base):
 
 	outgoing = relationship("Transaction", back_populates="payee", foreign_keys="Transaction.payee_id")
 	incoming = relationship("Transaction", back_populates="beneficiary", foreign_keys="Transaction.beneficiary_id")
+
+	def __repr__(self):
+		return json.dumps(self.json())
 
 	def json(self):
 		return {"code": self.code, "organisation": self.organisation,\
@@ -157,7 +162,7 @@ class Transaction(Base):
 	amount_orig = Column(Integer)
 	amount_usd = Column(Integer)
 	amount_eur = Column(Integer)
-	currency = Column(Integer)
+	currency = Column(String)
 
 	investigation = Column(String)
 	purpose = Column(String)
@@ -172,20 +177,22 @@ class Transaction(Base):
 	payee = relationship("Account", back_populates="outgoing", foreign_keys="Transaction.payee_id")
 	beneficiary = relationship("Account", back_populates="incoming", foreign_keys="Transaction.beneficiary_id")
 
-	'''
+	def __repr__(self):
+		return json.dumps(self.json())
+	
 	def json(self):
 		return {"amount_eur": util.format_amount(self.amount_eur), "amount_usd": util.format_amount(self.amount_usd),\
 			"amount": util.format_amount(self.amount_orig), "currency": self.currency,\
 			"date": self.date_created.date().isoformat(),\
 			"payee": self.payee.code, "beneficiary": self.beneficiary.code}
-	'''
+	
 
 
 Session = sessionmaker(bind=engine)
 
 session = Session()
 
-if __name__ == '__main__':
+def setup_db():
 	if os.path.exists(db_path):
 		backup = "%s.%s.%s" % (db_path[:-3], datetime.now().strftime(dateformat_log), db_path[-2:])
 		print("Backup previous database at: %s" % backup)
@@ -193,7 +200,6 @@ if __name__ == '__main__':
 
 	print("Creating database at: %s" % db_url)
 	Base.metadata.create_all(engine)
-	
-	#session = Session()
-	#session.add_all([mecca, new_york, berlin, london, milano, brasilia])
-	#session.commit()
+
+if __name__ == '__main__':
+	setup_db()	
