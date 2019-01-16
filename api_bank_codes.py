@@ -67,9 +67,13 @@ def get_account_country(code):
 	if data and ("result" in data):
 		valid = data["result"]["validation"]["iban_validity"] == "Valid"
 		data = data["result"]["data"]
-	valid = valid or (("valid" in data) and data["valid"])
+	valid = valid or (("valid" in data) and (data["valid"].upper() == "TRUE"))
 	if not valid:
+		print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
+
+	if "countrycode" not in data:
+		print(data)
 
 	return data["countrycode"]
 
@@ -85,12 +89,18 @@ def get_account_bank(code):
 		data = data["result"]["data"]
 	valid = valid or (("valid" in data) and data["valid"])
 	if not valid:
+		print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
 
-	if "bank" in data:
-		return data["bank"]
+	if not {"bic", "bank", "bank_code"}.intersection(data):
+		print(data)
+
 	if "bank_code" in data:
 		return data["bank_code"]
+	if "bic" in data:
+		return data["bic"]
+	if "bank" in data:
+		return data["bank"]
 	return None
 
 if __name__ == '__main__':
@@ -102,7 +112,7 @@ if __name__ == '__main__':
 		"BKTRUS33", "DEUTDEFFXXX", "BOFAUS3N", "HASEHKHH", "HEBACY2N", "HSBCHKHHHKH",\
 		"HSBCHKHHHKH", "AIZKLV22XXX", "HYIBLI22", "IDBLILIT", "KABANL2A",\
 		"NORSDE71", "NRAKAEAK", "OWHBDEFF", "PAHAAZ22", "TDOMUS33", "UBSWCHZH80A",\
-		"UFUKBORU", "VOAGLI22", "YAPITRIS"]
+		"VOAGLI22", "YAPITRIS"]
 	for next in swifts:
 		print(get_account_bank(next))
 		print(get_account_country(next))

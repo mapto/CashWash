@@ -192,8 +192,8 @@ Session = sessionmaker(bind=engine)
 
 session = Session()
 
-def setup_db():
-	if os.path.exists(db_path):
+def setup_db(backup = True):
+	if backup and os.path.exists(db_path):
 		backup = "%s.%s.%s" % (db_path[:-3], datetime.now().strftime(dateformat_log), db_path[-2:])
 		print("Backup previous database at: %s" % backup)
 		os.rename(db_path, backup)

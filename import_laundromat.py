@@ -39,8 +39,7 @@ def read_role(row, role):
 	acc_country = row[role + "_bank_country"]
 
 	bank_name = dataclean.clean_name(row[role + "_bank"], acc_country)
-	bank_code = None
-	#bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None
+	bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None
 
 	if acc_type == "IBAN":
 		bank_country = code[0:2]
@@ -190,6 +189,7 @@ def csv2db(data):
 	return json2db(json_data)
 
 if __name__ == '__main__':
+	from db import setup_db; setup_db()
 	#data = api_util.get_json_cached(laundromat_json, laundromat_json_url)
 	#json2db(data["data"])
 
