@@ -32,6 +32,12 @@ def _read_order(cols, request_args):
 			break
 	return order	
 
+
+@app.route('/owner/<code>', methods=['GET'])
+def get_organisation_by_account(code):
+	return jsonify(banks.query_organisation_by_account(code))
+
+
 @app.route('/datatables/transactions', methods=['GET'])
 def get_datatable_transactions():
 	draw = request.args.get('draw')
@@ -49,6 +55,27 @@ def get_datatable_transactions():
 	response = {"draw": draw, "length": length, "start": start, \
 		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
 		"data": [[util.format_amount(t.amount_usd), t.payee_org, t.payee_acc, t.beneficiary_org, t.beneficiary_acc, t.currency, t.date]\
+			for t in pagination.get_page(q, page, length, order)]}
+	return jsonify(response)
+
+
+@app.route('/datatables/intermediaries', methods=['GET'])
+def get_datatable_intermediaries():
+	draw = request.args.get('draw')
+	start = request.args.get('start')
+	start = int(start) if start else 0
+
+	length = request.args.get('length')
+	length = int(length) if length else 25
+	
+	page = start/length if start and length else 0
+
+	order = {"col": int(request.args.get('order[0][column]')), "dir": request.args.get('order[0][dir]')}
+
+	q = banks.get_intermediaries_statement()
+	response = {"draw": draw, "length": length, "start": start, \
+		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
+		"data": [[util.format_amount(t.inflow), util.format_amount(t.outflow), t.source, t.intermediary, t.destination]\
 			for t in pagination.get_page(q, page, length, order)]}
 	return jsonify(response)
 

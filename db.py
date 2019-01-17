@@ -40,8 +40,11 @@ class Alias(Base):
 	organisation = relationship("Organisation", back_populates="aliases")
 	jurisdiction = relationship("Jurisdiction", back_populates="aliases")
 	
+	def json(self):
+		return {"id": id, "alias": alias, "org": org_id, "country": country_id, "date": date_created.date().isoformat()}
+	
 	def __repr__(self):
-		return json.dumps({"id": id, "alias": alias, "org": org_id, "country": country_id, "date": date_created.date().isoformat()})
+		return json.dumps(self.json())
 	
 
 class Organisation(Base):
@@ -62,9 +65,12 @@ class Organisation(Base):
 	aliases = relationship("Alias", back_populates="organisation")
 
 	def __repr__(self):
-		return json.dumps({"name": self.name, "date": self.date_created.date().isoformat(),\
+		return json.dumps(self.json())
+
+	def json(self):
+		return {"id": self.id, "name": self.name, "date": self.date_created.date().isoformat(),\
 			"accounts": [a.code for a in self.accounts],\
-			"aliases": [a.alias for a in self.aliases]})
+			"aliases": [a.alias for a in self.aliases]}
 		#return str({"name": self.name, "date": self.date_created.date().isoformat()})
 		#return self.name
 

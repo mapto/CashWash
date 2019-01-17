@@ -104,8 +104,13 @@ def account_bank_code(code):
 
 # Public interfaces
 
-def get_organisation_by_account_query(account):
-	pass
+def query_organisation_by_account(code):
+	s = Session()
+	org = s.query(Organisation).join(Account, Account.owner_id==Organisation.id).filter(Account.code==code).first()
+	result = org.json()
+	s.close()
+	return result
+
 
 def get_transactions_statement():
 	s = """
@@ -126,3 +131,24 @@ join organisation tbo on tbo.id=tba.owner_id
 	subquery = text(s).columns()
 
 	return select([column("amount_usd"),column("payee_org"),column("payee_acc"),column("beneficiary_org"),column("beneficiary_acc"),column("currency"),column("date")]).select_from(subquery)
+
+def get_intermediaries_statement():
+	s = """
+select
+	sum(tf.amount_usd) inflow,
+	sum(tt.amount_usd) outflow,
+	ts.code source,
+	ti.code intermediary,
+	td.code destination
+from "transaction" tf
+join "transaction" tt on tf.beneficiary_id=tt.payee_id
+join account ts on ts.id=tf.payee_id
+join account ti on ti.id=tt.payee_id
+join account td on td.id=tt.beneficiary_id
+group by intermediary
+order by inflow desc, outflow desc
+	"""
+	s = "select inflow, outflow, source, intermediary, destination from intermediary"
+	subquery = text(s).columns()
+
+	return select([column("inflow"),column("outflow"),column("source"),column("intermediary"),column("destination")]).select_from(subquery)

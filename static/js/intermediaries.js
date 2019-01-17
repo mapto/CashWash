@@ -16,10 +16,10 @@ $(document).ready(function() {
 	  dataType: "json"
 	});
 	*/
-    $('#data').DataTable( {
+    var table = $('#data').DataTable( {
         //"processing": true,
         "serverSide": true,
         "stateSave": true,
-        "ajax": "../datatables/transactions"
+        "ajax": "../datatables/intermediaries"
     } );
 });
