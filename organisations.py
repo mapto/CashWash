@@ -1,4 +1,6 @@
-from db import session as s
+from sqlalchemy import alias, text, select, column
+
+from db import Session, session as s
 from db import Organisation, Alias, Jurisdiction, Account, Transaction
 
 from dataclean import clean_name
@@ -33,23 +35,23 @@ def upsert_organisation(name, org_type, core):
 def organisation_by_name(name):
 	return s.query(Organisation).filter(Organisation.name.like(name)).first()
 
-
 def upsert_alias(name, company, jurisdiction):
 	"""Atomic operation
 	includes commit
 	does not include normalisation 
 	"""
 	name = clean_name(name)
-	if not company:
+	if not name or not company:
 		return None
-	owner_id = company.id
 	alias = get_alias(name, company, jurisdiction)
 	if not alias:
 		alias = Alias(alias=name, organisation=company, jurisdiction=jurisdiction)
-		
 		s.add(alias)
-		s.commit()
 
+	if len(name) < len(company.name):
+		company.name = name
+
+	s.commit()
 	return alias
 
 def alias_by_name_and_owner(name, owner_id):
@@ -64,3 +66,15 @@ def get_alias(name, organisation, jurisdiction):
 		Alias.jurisdiction == jurisdiction).first()
 
 
+def get_aliases_statement(org_id):
+	s = """
+select
+	ta.alias alias,
+	tj.country country
+from alias ta
+join jurisdiction tj on tj.id=ta.country_id
+where ta.org_id=%d
+	"""
+	subquery = text(s % org_id).columns()  # This let's it be used as a subquery
+
+	return select([column("alias"),column("country")]).select_from(subquery)

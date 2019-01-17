@@ -1,7 +1,8 @@
-from sqlalchemy import alias
+from sqlalchemy import alias, text, select, column
+from sqlalchemy import Integer, String, Boolean, DateTime
 
-from db import session as s
-from db import Account, Transaction, Bank
+from db import Session, session as s
+from db import Account, Transaction, Organisation, Bank
 
 from dataclean import clean_name
 from util import is_blank
@@ -103,19 +104,25 @@ def account_bank_code(code):
 
 # Public interfaces
 
-def get_transactions_query():
-	#print(s.query(Transaction).from_self())
-	#[[util.format_amount(t.amount_orig), t.currency, t.payee.code, t.beneficiary.code, t.date.date().isoformat()]\
-	payee = alias(Account, name="payee")
-	beneficiary = alias(Account, name="beneficiary")
+def get_organisation_by_account_query(account):
+	pass
 
-	q = s.query(\
-		Transaction.amount_usd.label("amount_usd"),\
-		Transaction.currency,\
-		payee.c.code.label("payee"),\
-		beneficiary.c.code.label("beneficiary"),\
-		Transaction.date).\
-		join(payee, Transaction.payee_id==payee.c.id).\
-		join(beneficiary, Transaction.beneficiary_id==beneficiary.c.id)
-	return q
-	# return Transaction
+def get_transactions_statement():
+	s = """
+select
+	amount_usd,
+	tpo.name payee_org,
+	tpa.code payee_acc,
+	tbo.name beneficiary_org,
+	tba.code beneficiary_acc,
+	currency,
+	tt.date_created date
+from "transaction" tt
+join account tpa on tpa.id=tt.payee_id
+join account tba on tba.id=tt.beneficiary_id
+join organisation tpo on tpo.id=tpa.owner_id
+join organisation tbo on tbo.id=tba.owner_id
+	"""
+	subquery = text(s).columns()
+
+	return select([column("amount_usd"),column("payee_org"),column("payee_acc"),column("beneficiary_org"),column("beneficiary_acc"),column("currency"),column("date")]).select_from(subquery)

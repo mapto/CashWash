@@ -12,9 +12,11 @@ from settings import debug
 
 import util
 
-import banks
+import banks, organisations
 
 import pagination
+
+datatable_empty = {"draw": 1, "lenght": 25, "start": 0, "recordsTotal": 0, "recordsFiltered": 0, "data": []}
 
 app = Flask(__name__, static_url_path="")
 
@@ -43,10 +45,36 @@ def get_datatable_transactions():
 
 	order = {"col": int(request.args.get('order[0][column]')), "dir": request.args.get('order[0][dir]')}
 
-	q = banks.get_transactions_query()
-	response = {"draw": draw, "recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q), "lenght": length, "start": start, \
-		"data": [[util.format_amount(t.amount_usd), t.payee, t.beneficiary, t.currency, t.date.date().isoformat()]\
+	q = banks.get_transactions_statement()
+	response = {"draw": draw, "length": length, "start": start, \
+		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
+		"data": [[util.format_amount(t.amount_usd), t.payee_org, t.payee_acc, t.beneficiary_org, t.beneficiary_acc, t.currency, t.date]\
 			for t in pagination.get_page(q, page, length, order)]}
+	return jsonify(response)
+
+
+@app.route('/datatables/aliases/<org_id>', methods=['GET'])
+def get_datatable_aliases(org_id):
+	if not org_id:
+		return jsonify(datatable_empty)
+
+	draw = request.args.get('draw')
+	start = request.args.get('start')
+	start = int(start) if start else 0
+
+	length = request.args.get('length')
+	length = int(length) if length else 25
+	
+	page = start/length if start and length else 0
+
+	order = {"col": int(request.args.get('order[0][column]')), "dir": request.args.get('order[0][dir]')}
+
+	q = organisations.get_aliases_statement(int(org_id))
+	response = {"draw": draw, "length": length, "start": start, \
+		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
+		"data": [[t.alias, t.country]\
+			for t in pagination.get_page(q, page, length, order)]}
+
 	return jsonify(response)
 
 
