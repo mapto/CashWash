@@ -4,7 +4,8 @@ from os import path
 from datetime import datetime
 import json
 
-from settings import bankcodes_api_key as api_key
+from private import bankcodes_api_key as api_key
+from settings import data_path
 from settings import dateformat_log
 
 from settings import data_path
@@ -28,7 +29,7 @@ urls = {"IBAN": iban_url, "SWIFT": swift_url}
 datestamp = datetime.now().strftime(dateformat_log[:6])
 
 #query_limit = 50
-query_limit = 20
+query_limit = 19
 counter_path = "%scounter.%s.txt" % (bank_codes_path, datestamp)
 query_counter = False
 
@@ -132,10 +133,6 @@ def get_account_bank_code(code):
 	return None
 
 if __name__ == '__main__':
-	print(get_account_bank_name("EE273300333505610002"))
-	print(get_account_bank_name("IT78T0605569721000000001000"))
-	print(get_account_country("IT78T0605569721000000001000"))
-
 	swifts = ["BARCGB22", "BOTKGB2L", "COBADEFFXXX", "BKCHCNBJ", "BKCHHKHH",\
 		"BKTRUS33", "DEUTDEFFXXX", "BOFAUS3N", "HASEHKHH", "HEBACY2N", "HSBCHKHHHKH",\
 		"HSBCHKHHHKH", "AIZKLV22XXX", "HYIBLI22", "IDBLILIT", "KABANL2A",\

@@ -1,7 +1,5 @@
 from os import path
 
-from private import bankcodes_api_key
-
 curdir = path.dirname(path.realpath(__file__))
 path.curdir = curdir
 
