@@ -68,9 +68,9 @@ class Organisation(Base):
 		return json.dumps(self.json())
 
 	def json(self):
-		return {"id": self.id, "name": self.name, "date": self.date_created.date().isoformat(),\
-			"accounts": [a.code for a in self.accounts],\
-			"aliases": [a.alias for a in self.aliases]}
+		return {"id": self.id, "name": self.name, "date": self.date_created.date().isoformat()} #,\
+		#	"accounts": [a.code for a in self.accounts],\
+		#	"aliases": [a.alias for a in self.aliases]}
 		#return str({"name": self.name, "date": self.date_created.date().isoformat()})
 		#return self.name
 
@@ -80,10 +80,17 @@ class Jurisdiction(Base):
 
 	id = Column(Integer, primary_key=True)
 
-	country = Column(String)
+	name = Column(String)
+	code = Column(String)
 
 	aliases = relationship("Alias", back_populates="jurisdiction")
 	banks = relationship("Bank", back_populates="jurisdiction")
+
+	def __repr__(self):
+		return json.dumps(self.json())
+
+	def json(self):
+		return {"id": self.id, "name": self.name, "code": self.code}
 
 
 class Account(Base):
@@ -94,7 +101,7 @@ class Account(Base):
 	code = Column(String, unique=True)
 	acc_type = Column(String) # IBAN, SWIFT, CASH, LOCAL # see service.account_type
 
-	detail = Column(Integer, ForeignKey("account_detail.id"))
+	#detail = Column(Integer, ForeignKey("account_detail.id"))
 	owner_id = Column(Integer, ForeignKey("organisation.id"))
 	bank_id = Column(Integer, ForeignKey("bank.id"))
 
@@ -102,7 +109,7 @@ class Account(Base):
 
 	bank = relationship("Bank", back_populates="accounts")
 	organisation = relationship("Organisation", back_populates="accounts")
-	detail = relationship("AccountDetail", back_populates="account")
+	#detail = relationship("AccountDetail", back_populates="account")
 
 	outgoing = relationship("Transaction", back_populates="payee", foreign_keys="Transaction.payee_id")
 	incoming = relationship("Transaction", back_populates="beneficiary", foreign_keys="Transaction.beneficiary_id")
@@ -114,7 +121,7 @@ class Account(Base):
 		return {"code": self.code, "organisation": self.organisation,\
 			"date": self.date_created.date().isoformat()}
 
-
+"""
 class AccountDetail(Base):
 	__tablename__ = 'account_detail'
 
@@ -137,7 +144,7 @@ class AccountDetail(Base):
 	date_created = Column(DateTime, default=func.current_timestamp())
 
 	account = relationship("Account", back_populates="detail")
-
+"""
 
 class Bank(Base):
 
@@ -158,6 +165,12 @@ class Bank(Base):
 
 	jurisdiction = relationship("Jurisdiction", back_populates="banks")
 	accounts = relationship("Account", back_populates="bank")
+
+	def __repr__(self):
+		return json.dumps(self.json())
+
+	def json(self):
+		return {"id": self.id, "name": self.name, "code": self.code}
 
 
 class Transaction(Base):
@@ -194,7 +207,7 @@ class Transaction(Base):
 	
 
 
-Session = sessionmaker(bind=engine)
+Session = sessionmaker(bind=engine,autoflush=False)
 
 session = Session()
 

@@ -29,3 +29,16 @@ def get_csv_cached(filename, url):
 		# data = [[bytes(s, "utf-8") for s in data] for data in csvreader]
 
 	return data
+
+def get_xml_cached(filename, url):
+	if not path.isfile(filename):
+		response = requests.get(url)
+		response.raise_for_status()
+		data = response.content
+		with open(filename, 'wb') as f:
+			f.write(data)
+
+	with open(filename, 'r', encoding="utf-8") as xmlfile:
+		data = xmlfile.read()
+
+	return data

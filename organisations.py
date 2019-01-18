@@ -32,6 +32,49 @@ def upsert_organisation(name, org_type, core):
 
 	return org
 
+def merge_organisations(this_id, that_id):
+	"""remove short_code account"""
+	success = True
+	s = Session()
+	this = _get_organisation(s, this_id)
+	if not this:
+		return False
+	that = _get_organisation(s, that_id)
+	if not that:
+		return False
+
+	# name, org_type, core
+	if len(that.name) < len(this.name):
+		this.name = that.name
+
+	if this.org_type and that.org_type and this.org_type != that.org_type:
+		print("Organisation %s with different type: old: '%s'; new: '%s'"\
+			%(this.name, this.org_type, that.org_type))
+		success = False
+	if this.core and that.core and this.core != that.core:
+		print("Organisation %s with different core: old: '%s'; new: '%s'"\
+			%(this.name, this.core, that.core))
+		success = False
+
+	# accounts, aliases
+	this.aliases = this.aliases + that.aliases
+	this.accounts = this.accounts + that.accounts
+
+	s.delete(that)
+	s.commit()
+	s.close
+	return success
+
+def _get_organisation(s, org_id):
+	return s.query(Organisation).get(org_id)
+
+def get_organisation(org_id):
+	s = Session()
+	org = _get_organisation(s, org_id)
+	result = org.json()
+	s.close()
+	return result
+
 def organisation_by_name(name):
 	return s.query(Organisation).filter(Organisation.name.like(name)).first()
 

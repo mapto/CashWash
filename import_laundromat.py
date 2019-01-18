@@ -10,6 +10,8 @@ from settings import dateformat, data_path
 import dataclean
 import util, api_util
 
+import db_views
+
 # from db import Organisation, Account, Transaction
 
 import jurisdictions, banks, organisations
@@ -34,7 +36,7 @@ def read_role(row, role):
 	core = row[role + "_core"].upper() == "TRUE"
 
 	code = str(row[role + "_account"])
-	code = re.sub(r"\s" , "", code)
+	code = re.sub(r"\s" , "", code).lstrip("0")
 	acc_type = banks.account_type(code)
 	acc_country = row[role + "_bank_country"]
 
@@ -116,14 +118,24 @@ def json2db(data):
 		"payer_bank_country": "33"
 	}
 	'''
-
+	print("Preloading Jurisdictions...")
+	jurisdictions.preload_jurisdictions()
+	print("Preloading cached accounts...")
+	banks.preload_cached_accounts()
+	print("Importing transactions...")
+	total = len(data); counter = 0
 	for row in data:
 		# print(row)
-
+		counter += 1
+		if not (100 * counter / total % 1): print("Importing %d%%..."%(100 * counter / total))
 		from_acc = read_role(row, "payer")
 		to_acc = read_role(row, "beneficiary")
 
 		read_transaction(row, from_acc, to_acc)
+	print("Merging duplicate accounts...")
+	banks.clean_local_accounts()
+	print("Generating views...")
+	db.views.init_derived()
 
 def csv2db(data):
 	"""
@@ -186,7 +198,7 @@ def csv2db(data):
 			"amount_orig_currency": row[3]\
 		})
 
-	return json2db(json_data)
+	json2db(json_data)
 
 if __name__ == '__main__':
 	from db import setup_db; setup_db()

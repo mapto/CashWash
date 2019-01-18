@@ -6,6 +6,7 @@ This project is using data from:
 * the [Azerbaijani Laundromat](https://www.occrp.org/en/azerbaijanilaundromat/) investigation by [OCCRP](https://occrp.org) and [Berlingske](https://www.berlingske.dk), available under the [CreativeCommons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) license.
 * [OpenCorporates](https://opencorporates.com) under their [CreativeCommons Atrribution-ShareAlike 3.0](https://creativecommons.org/licenses/by-sa/3.0/) licence.
 * [Bank.codes](https://bank.codes).
+* [Wikipedia](https://wikipedia.org/) available under [ Creative Commons Attribution-ShareAlike 3.0](https://en.wikipedia.org/wiki/Wikipedia:Text_of_Creative_Commons_Attribution-ShareAlike_3.0_Unported_License) license.
 * [FontAwesome](http://fontawesome.com/) under [CreativeCommons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) according to their [free license](https://fontawesome.com/license/free).
 
 No data from any of these data sources is published here. The platform allows you to provide your own API keys and extract any data yourself. To this end consider requesting your own license and adding it as indicated in the [private.py](https://github.com/mapto/CashWash/blob/master/private.py) file.
