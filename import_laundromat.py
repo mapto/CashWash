@@ -135,7 +135,7 @@ def json2db(data):
 	print("Merging duplicate accounts...")
 	banks.clean_local_accounts()
 	print("Generating views...")
-	db.views.init_derived()
+	db_views.init_derived()
 
 def csv2db(data):
 	"""
