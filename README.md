@@ -10,3 +10,9 @@ This project is using data from:
 * [FontAwesome](http://fontawesome.com/) under [CreativeCommons Attribution 4.0](https://creativecommons.org/licenses/by/4.0/) according to their [free license](https://fontawesome.com/license/free).
 
 No data from any of these data sources is published here. The platform allows you to provide your own API keys and extract any data yourself. To this end consider requesting your own license and adding it as indicated in the [private.py](https://github.com/mapto/CashWash/blob/master/private.py) file.
+
+To install dependencies run:
+
+    pip3 install flask sqlalchemy requests pyquery
+    
+    
