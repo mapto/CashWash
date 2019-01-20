@@ -1,4 +1,4 @@
-#!flask/bin/python
+#!/usr/bin/env python3
 import json
 
 from werkzeug.routing import BaseConverter
@@ -10,7 +10,7 @@ from flask import request
 from settings import host, port, static_path
 from settings import debug
 
-import util
+from util import format_amount
 
 import banks, organisations
 
@@ -49,12 +49,16 @@ def get_datatable_transactions():
 	
 	page = start/length if start and length else 0
 
-	order = {"col": int(request.args.get('order[0][column]')), "dir": request.args.get('order[0][dir]')}
+	order = {"col": int(request.args.get('order[0][column]')),\
+		"dir": request.args.get('order[0][dir]')}
 
 	q = banks.get_transactions_statement()
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
-		"data": [[util.format_amount(t.amount_usd), t.payee_org, t.payee_acc, t.beneficiary_org, t.beneficiary_acc, t.currency, t.date]\
+		"recordsTotal": pagination.count_total(q),\
+		"recordsFiltered": pagination.count_total(q),\
+		"data": [[format_amount(t.amount_usd),\
+			t.payee_org, t.payee_acc,\
+			t.beneficiary_org, t.beneficiary_acc, t.currency, t.date.date().isoformat()]\
 			for t in pagination.get_page(q, page, length, order)]}
 	return jsonify(response)
 
@@ -70,12 +74,16 @@ def get_datatable_intermediaries():
 	
 	page = start/length if start and length else 0
 
-	order = {"col": int(request.args.get('order[0][column]')), "dir": request.args.get('order[0][dir]')}
+	order = {"col": int(request.args.get('order[0][column]')),\
+		"dir": request.args.get('order[0][dir]')}
 
 	q = banks.get_intermediaries_statement()
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
-		"data": [[util.format_amount(t.inflow), util.format_amount(t.outflow), t.source, t.intermediary, t.destination]\
+		"recordsTotal": pagination.count_total(q),\
+		"recordsFiltered": pagination.count_total(q),\
+		"data": [[\
+			format_amount(t.inflow), format_amount(t.outflow), format_amount(t.balance),\
+			t.source, t.intermediary, t.destination]\
 			for t in pagination.get_page(q, page, length, order)]}
 	return jsonify(response)
 
@@ -94,7 +102,8 @@ def get_datatable_aliases(org_id):
 	
 	page = start/length if start and length else 0
 
-	order = {"col": int(request.args.get('order[0][column]')), "dir": request.args.get('order[0][dir]')}
+	order = {"col": int(request.args.get('order[0][column]')),\
+		"dir": request.args.get('order[0][dir]')}
 
 	q = organisations.get_aliases_statement(int(org_id))
 	response = {"draw": draw, "length": length, "start": start, \

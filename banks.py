@@ -212,28 +212,18 @@ join organisation tbo on tbo.id=tba.owner_id
 	"""
 	subquery = text(s).columns()
 
-	return select([column("amount_usd"),column("payee_org"),column("payee_acc"),column("beneficiary_org"),column("beneficiary_acc"),column("currency"),column("date")]).select_from(subquery)
+	return select([column("amount_usd"),\
+		column("payee_org"),column("payee_acc"),\
+		column("beneficiary_org"),column("beneficiary_acc"),\
+		column("currency"),column("date", type_=DateTime)]).select_from(subquery)
 
 def get_intermediaries_statement():
-	s = """
-select
-	sum(tf.amount_usd) inflow,
-	sum(tt.amount_usd) outflow,
-	ts.code source,
-	ti.code intermediary,
-	td.code destination
-from "transaction" tf
-join "transaction" tt on tf.beneficiary_id=tt.payee_id
-join account ts on ts.id=tf.payee_id
-join account ti on ti.id=tt.payee_id
-join account td on td.id=tt.beneficiary_id
-group by intermediary
-order by inflow desc, outflow desc
-	"""
-	s = "select inflow, outflow, source, intermediary, destination from intermediary"
+	s = "select inflow, outflow, balance, source, intermediary, destination from intermediary"
 	subquery = text(s).columns()
 
-	return select([column("inflow"),column("outflow"),column("source"),column("intermediary"),column("destination")]).select_from(subquery)
+	return select([column("inflow"),column("outflow"),column("balance"),\
+		column("source"),column("intermediary"),column("destination")])\
+		.select_from(subquery)
 
 if __name__ == '__main__':
 	preload_cached_accounts()
