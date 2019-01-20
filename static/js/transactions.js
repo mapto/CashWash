@@ -17,10 +17,14 @@ $(document).ready(function() {
 	});
 	*/
     var table = $('#data').DataTable( {
-        //"processing": true,
-        "serverSide": true,
-        "stateSave": true,
-        "ajax": "../datatables/transactions"
+        ajax: "../datatables/transactions",
+        columnDefs: [
+        	{targets: [1, 3], render: renderOrgAndAcc},
+	        {targets: [2, 4], visible: false}
+	    ],
+	    order: [[ 0, "desc" ]],
+        serverSide: true,
+        stateSave: true,
     } );
 
 });

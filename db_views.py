@@ -12,9 +12,12 @@ CREATE TABLE intermediary(
   inflow INTEGER,
   outflow INTEGER,
   balance INTEGER,
-  source VARCHAR,
-  intermediary VARCHAR,
-  destination VARCHAR
+  source_org VARCHAR,
+  source_acc VARCHAR,
+  intermediary_org VARCHAR,
+  intermediary_acc VARCHAR,
+  destination_org VARCHAR,
+  destination_acc VARCHAR
 )
 """
 # table
@@ -24,15 +27,18 @@ select
 	sum(tf.amount_usd) inflow,
 	sum(tt.amount_usd) outflow,
 	sum(tf.amount_usd) - sum(tt.amount_usd) balance,
-	ts.code source,
-	ti.code intermediary,
-	td.code destination
+	tsa.code source_acc,       tso.name source_org,
+	tia.code intermediary_acc, tio.name intermediary_org,
+	tda.code destination_acc,  tdo.name destination_org
 from "transaction" tf
-join "transaction" tt on tf.beneficiary_id=tt.payee_id
-join account ts on ts.id=tf.payee_id
-join account ti on ti.id=tt.payee_id AND ti.id IS NOT NULL AND ti.code IS NOT NULL
-JOIN account td on td.id=tt.beneficiary_id
-GROUP BY intermediary
+JOIN "transaction" tt ON tf.beneficiary_id=tt.payee_id
+JOIN account tsa      ON tsa.id=tf.payee_id
+JOIN organisation tso ON tso.id=tsa.owner_id
+JOIN account tia      ON tia.id=tt.payee_id AND tia.id IS NOT NULL AND tia.code IS NOT NULL
+JOIN organisation tio ON tio.id=tia.owner_id
+JOIN account tda      ON tda.id=tt.beneficiary_id
+JOIN organisation tdo ON tdo.id=tda.owner_id
+GROUP BY intermediary_org
 """
 # view - legacy - structure needs to be updated in accordance to table version
 '''

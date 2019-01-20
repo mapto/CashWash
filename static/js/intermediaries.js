@@ -18,8 +18,12 @@ $(document).ready(function() {
 	*/
     var table = $('#data').DataTable( {
         //"processing": true,
-        "serverSide": true,
-        "stateSave": true,
-        "ajax": "../datatables/intermediaries"
+        columnDefs: [
+        	{targets: [1, 3], render: renderOrgAndAcc},
+	        {targets: [2, 4], visible: false}
+	    ],
+        serverSide: true,
+        stateSave: true,
+        ajax: "../datatables/intermediaries"
     } );
 });

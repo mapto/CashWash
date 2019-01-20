@@ -218,11 +218,20 @@ join organisation tbo on tbo.id=tba.owner_id
 		column("currency"),column("date", type_=DateTime)]).select_from(subquery)
 
 def get_intermediaries_statement():
-	s = "select inflow, outflow, balance, source, intermediary, destination from intermediary"
+	s = """
+select
+	inflow, outflow, balance,
+	source_org, source_acc,
+	intermediary_org, intermediary_acc,
+	destination_org, destination_acc
+from intermediary
+"""
 	subquery = text(s).columns()
 
 	return select([column("inflow"),column("outflow"),column("balance"),\
-		column("source"),column("intermediary"),column("destination")])\
+		column("source_org"), column("source_acc"),\
+		column("intermediary_org"), column("intermediary_acc"),\
+		column("destination_org"), column("destination_acc")])\
 		.select_from(subquery)
 
 if __name__ == '__main__':

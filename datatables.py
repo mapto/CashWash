@@ -1,3 +1,5 @@
+"""Server-side processing for https://datatables.net/manual/server-side"""
+
 from sqlalchemy import func, column
 
 from db import Session
@@ -61,7 +63,9 @@ def get_datatable_intermediaries(draw, start=0, length=25, order=None):
 		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
 		"data": [[\
 			format_amount(t.inflow), format_amount(t.outflow), format_amount(t.balance),\
-			t.source, t.intermediary, t.destination]\
+			t.source_org, t.source_acc,\
+			t.intermediary_org, t.intermediary_acc,\
+			t.destination_org, t.destination_acc]\
 			for t in _get_page(q, page, length, order)]}
 	return response
 
