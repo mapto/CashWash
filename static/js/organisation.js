@@ -1,14 +1,19 @@
 $(document).ready(function() {
 	var url = new URL(location.href);
-	var org_acc = url.searchParams.get("account");
-	$.ajax({
-	  url: "../owner/" + org_acc,
-	  success: function(d) {
-	  	$("#orgName").text(d.name);
-	  	loadOrganisation(d.id);
-	  },
-	  dataType: "json"
-	});
+	var org_id = url.searchParams.get("org");
+	var org_acc = url.searchParams.get("acc");
+	if (org_id) {
+		loadOrganisation(org_id);
+	} else if (org_acc) {
+		$.ajax({
+		  url: "../owner/" + org_acc,
+		  success: function(d) {
+		  	$("#orgName").text(d.name);
+		  	loadOrganisation(d.id);
+		  },
+		  dataType: "json"
+		});
+	}
 });
 
 function loadOrganisation(id) {
