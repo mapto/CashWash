@@ -10,81 +10,45 @@ from flask import request
 from settings import host, port, static_path
 from settings import debug
 
-from util import format_amount
-
 import banks, organisations
 
-import pagination
-
-datatable_empty = {"draw": 1, "lenght": 25, "start": 0, "recordsTotal": 0, "recordsFiltered": 0, "data": []}
+import datatables
 
 app = Flask(__name__, static_url_path="")
-
-def _read_order(cols, request_args):
-	order = []
-	order_col = 1
-	for i in range(cols):
-		order_col = request_args.get('order[%d][column]'%i)
-		order_dir = request_args.get('order[%d][dir]'%i)
-		if order_col:
-			order.append((order_col, order_dir))
-		else:
-			break
-	return order	
-
 
 @app.route('/owner/<code>', methods=['GET'])
 def get_organisation_by_account(code):
 	return jsonify(banks.query_organisation_by_account(code))
 
-
-@app.route('/datatables/transactions', methods=['GET'])
-def get_datatable_transactions():
+def _prepare_datatable_parameters(request):
 	draw = request.args.get('draw')
 	start = request.args.get('start')
 	start = int(start) if start else 0
 
 	length = request.args.get('length')
 	length = int(length) if length else 25
+
+	order_col = request.args.get('order[0][column]')
+	if order_col:
+		order_dir = request.args.get('order[0][dir]')
+		order = {"col": int(order_col),\
+			"dir": order_dir if order_dir else "asc"}
+	else:
+		order = None
 	
-	page = start/length if start and length else 0
+	return (draw, start, length, order)	
 
-	order = {"col": int(request.args.get('order[0][column]')),\
-		"dir": request.args.get('order[0][dir]')}
-
-	q = banks.get_transactions_statement()
-	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q),\
-		"recordsFiltered": pagination.count_total(q),\
-		"data": [[format_amount(t.amount_usd),\
-			t.payee_org, t.payee_acc,\
-			t.beneficiary_org, t.beneficiary_acc, t.currency, t.date.date().isoformat()]\
-			for t in pagination.get_page(q, page, length, order)]}
+@app.route('/datatables/transactions', methods=['GET'])
+def get_datatable_transactions():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_transactions(*params)	
 	return jsonify(response)
 
 
 @app.route('/datatables/intermediaries', methods=['GET'])
 def get_datatable_intermediaries():
-	draw = request.args.get('draw')
-	start = request.args.get('start')
-	start = int(start) if start else 0
-
-	length = request.args.get('length')
-	length = int(length) if length else 25
-	
-	page = start/length if start and length else 0
-
-	order = {"col": int(request.args.get('order[0][column]')),\
-		"dir": request.args.get('order[0][dir]')}
-
-	q = banks.get_intermediaries_statement()
-	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q),\
-		"recordsFiltered": pagination.count_total(q),\
-		"data": [[\
-			format_amount(t.inflow), format_amount(t.outflow), format_amount(t.balance),\
-			t.source, t.intermediary, t.destination]\
-			for t in pagination.get_page(q, page, length, order)]}
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_intermediaries(*params)
 	return jsonify(response)
 
 
@@ -93,24 +57,18 @@ def get_datatable_aliases(org_id):
 	if not org_id:
 		return jsonify(datatable_empty)
 
-	draw = request.args.get('draw')
-	start = request.args.get('start')
-	start = int(start) if start else 0
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_aliases(int(org_id), *params)
+	return jsonify(response)
 
-	length = request.args.get('length')
-	length = int(length) if length else 25
-	
-	page = start/length if start and length else 0
 
-	order = {"col": int(request.args.get('order[0][column]')),\
-		"dir": request.args.get('order[0][dir]')}
+@app.route('/datatables/accounts/<org_id>', methods=['GET'])
+def get_datatable_accounts(org_id):
+	if not org_id:
+		return jsonify(datatable_empty)
 
-	q = organisations.get_aliases_statement(int(org_id))
-	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
-		"data": [[t.alias, t.country]\
-			for t in pagination.get_page(q, page, length, order)]}
-
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_accounts(int(org_id), *params)
 	return jsonify(response)
 
 
@@ -119,24 +77,8 @@ def get_datatable_incoming(org_id):
 	if not org_id:
 		return jsonify(datatable_empty)
 
-	draw = request.args.get('draw')
-	start = request.args.get('start')
-	start = int(start) if start else 0
-
-	length = request.args.get('length')
-	length = int(length) if length else 25
-	
-	page = start/length if start and length else 0
-
-	order = {"col": int(request.args.get('order[0][column]')),\
-		"dir": request.args.get('order[0][dir]')}
-
-	q = organisations.get_incoming_statement(int(org_id))
-	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
-		"data": [[format_amount(t.total), t.source]\
-			for t in pagination.get_page(q, page, length, order)]}
-
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_incoming(int(org_id), *params)
 	return jsonify(response)
 
 
@@ -145,24 +87,8 @@ def get_datatable_outgoing(org_id):
 	if not org_id:
 		return jsonify(datatable_empty)
 
-	draw = request.args.get('draw')
-	start = request.args.get('start')
-	start = int(start) if start else 0
-
-	length = request.args.get('length')
-	length = int(length) if length else 25
-	
-	page = start/length if start and length else 0
-
-	order = {"col": int(request.args.get('order[0][column]')),\
-		"dir": request.args.get('order[0][dir]')}
-
-	q = organisations.get_outgoing_statement(int(org_id))
-	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
-		"data": [[format_amount(t.total), t.destination]\
-			for t in pagination.get_page(q, page, length, order)]}
-
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_outgoing(int(org_id), *params)
 	return jsonify(response)
 
 

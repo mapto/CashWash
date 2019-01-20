@@ -14,33 +14,42 @@ $(document).ready(function() {
 function loadOrganisation(id) {
     var table = $('#aliases').DataTable( {
         //"processing": true,
-        "serverSide": true,
-        "stateSave": true,
+        serverSide: true,
+        stateSave: true,
         info: false,
         paging: false,
         searching: false,
-        "ajax": "../datatables/aliases/" + id
-    } );
+        ajax: "../datatables/aliases/" + id
+    });
+
+    var table = $('#accounts').DataTable( {
+        ajax: "../datatables/accounts/" + id,
+        info: false,
+        serverSide: true,
+        stateSave: true,
+        paging: false,
+        searching: false,
+    });
 
     var table = $('#incoming').DataTable( {
-        //"processing": true,
-        lengthChange: false,
-        searching: false,
-        pagingType: "simple",
+        ajax: "../datatables/incoming/" + id,
         info: false,
-        "serverSide": true,
-        "stateSave": true,
-        "ajax": "../datatables/incoming/" + id
-    } );
+        lengthChange: false,
+        order: [[0, "desc"]],
+        pagingType: "simple",
+        searching: false,
+        serverSide: true,
+        stateSave: true
+    });
 
     var table = $('#outgoing').DataTable( {
-        //"processing": true,
+        ajax: "../datatables/outgoing/" + id,
+        info: false,
         lengthChange: false,
+        order: [[0, "desc"]],
         pagingType: "simple",
         searching: false,
-        info: false,
-        "serverSide": true,
-        "stateSave": true,
-        "ajax": "../datatables/outgoing/" + id
-    } );
+        serverSide: true,
+        stateSave: true
+    });
 }

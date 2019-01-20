@@ -109,6 +109,19 @@ def get_alias(name, organisation, jurisdiction):
 		Alias.jurisdiction == jurisdiction).first()
 
 
+def get_accounts_statement(org_id):
+	s = """
+select
+	ta.code code,
+	tb.name bank
+from account ta
+join bank tb on tb.id=ta.bank_id
+where ta.owner_id=%d
+	"""
+	subquery = text(s % org_id).columns()  # This let's it be used as a subquery
+
+	return select([column("code"),column("bank")]).select_from(subquery)
+
 def get_aliases_statement(org_id):
 	s = """
 select
