@@ -114,6 +114,58 @@ def get_datatable_aliases(org_id):
 	return jsonify(response)
 
 
+@app.route('/datatables/incoming/<org_id>', methods=['GET'])
+def get_datatable_incoming(org_id):
+	if not org_id:
+		return jsonify(datatable_empty)
+
+	draw = request.args.get('draw')
+	start = request.args.get('start')
+	start = int(start) if start else 0
+
+	length = request.args.get('length')
+	length = int(length) if length else 25
+	
+	page = start/length if start and length else 0
+
+	order = {"col": int(request.args.get('order[0][column]')),\
+		"dir": request.args.get('order[0][dir]')}
+
+	q = organisations.get_incoming_statement(int(org_id))
+	response = {"draw": draw, "length": length, "start": start, \
+		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
+		"data": [[format_amount(t.total), t.source]\
+			for t in pagination.get_page(q, page, length, order)]}
+
+	return jsonify(response)
+
+
+@app.route('/datatables/outgoing/<org_id>', methods=['GET'])
+def get_datatable_outgoing(org_id):
+	if not org_id:
+		return jsonify(datatable_empty)
+
+	draw = request.args.get('draw')
+	start = request.args.get('start')
+	start = int(start) if start else 0
+
+	length = request.args.get('length')
+	length = int(length) if length else 25
+	
+	page = start/length if start and length else 0
+
+	order = {"col": int(request.args.get('order[0][column]')),\
+		"dir": request.args.get('order[0][dir]')}
+
+	q = organisations.get_outgoing_statement(int(org_id))
+	response = {"draw": draw, "length": length, "start": start, \
+		"recordsTotal": pagination.count_total(q), "recordsFiltered": pagination.count_total(q),\
+		"data": [[format_amount(t.total), t.destination]\
+			for t in pagination.get_page(q, page, length, order)]}
+
+	return jsonify(response)
+
+
 # Serve static content
 class RegexConverter(BaseConverter):
     def __init__(self, url_map, *items):

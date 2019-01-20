@@ -23,9 +23,4 @@ $(document).ready(function() {
         "ajax": "../datatables/transactions"
     } );
 
-    var filtered = table.column(1).data().filter(function (val, idx) {
-    	return val.startsWith("EE");
-    })
-    console.log(filtered);
-    console.log(filtered.data());
 });

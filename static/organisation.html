@@ -1,0 +1,81 @@
+<!doctype html>
+
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
+	<link rel="icon" type="image/png" href="images/favicon.png">
+
+	<title>CashWash - Intermediaries</title>
+
+	<meta name="description" content="CashWash: Transactions">
+	<meta name="author" content="github.com/mapto">
+
+	<link rel="stylesheet" href="css/reset.css">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/css/bootstrap.min.css" integrity="sha384-GJzZqFGwb1QTTN6wy59ffF1BuGJpLSa9DkKMp0DgiMDm4iYMj70gZWKYbI706tWS" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.6.3/css/all.css" integrity="sha384-UHRtZLI+pbxtHCWp1t77Bi1L4ZtiqrqD80Kn4Z8NTSRyMA2Fd33n5dQ8lWUE00s/" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://cdn.datatables.net/1.10.19/css/jquery.dataTables.min.css">
+
+	<link rel="stylesheet" href="css/main.css">
+
+	<meta name="keywords" content="laudromat, transactions, cash flows, money laundering, illicit funding" />
+	<meta name="description" content="Exploration of illicit transactions for invesigative purposes" /> <!-- limit of 156 characters, apparently because of Google -->
+
+	<!-- Open Graph -->
+	<meta property="og:title" content="CashWash" /> <!-- duplicate of title -->
+	<meta property="og:type" content="website" />
+	<meta property="og:url" content="https://github.com/mapto/CashWash/" />
+	<!--<meta property="og:image" content="images/logo.png" />-->	<!-- higher resolution than favicon -->
+	<meta property="og:description" content="Exploration of illicit transactions for invesigative purposes" /> <!-- duplicate of meta description -->
+
+</head>
+
+<body>
+	<header></header>
+
+	<div class="container-fluid">
+		<h1 id="orgName"></h1>
+		<div class="row">
+			<div class="col-2">
+				<table id="aliases">
+		        <thead>
+		            <tr>
+		                <th>Alias</th>
+		                <th>Country</th>
+		            </tr>
+		        </thead>
+				</table>
+			</div>
+			<div class="col-5">
+				<table id="incoming">
+		        <thead>
+		            <tr>
+		                <th>Transferred (USD)</th>
+		                <th>Source</th>
+		            </tr>
+		        </thead>
+				</table>
+			</div>
+			<div class="col-5">
+				<table id="outgoing">
+		        <thead>
+		            <tr>
+		                <th>Transferred (USD)</th>
+		                <th>Destination</th>
+		            </tr>
+		        </thead>
+				</table>
+			</div>
+		</div>
+	</div>
+
+	<script src="https://code.jquery.com/jquery-3.3.1.min.js" integrity="sha256-FgpCb/KJQlLNfOu91ta32o/NMZxltwRo8QtmkMRdAu8=" crossorigin="anonymous"></script>
+  	<script src="https://cdn.datatables.net/1.10.19/js/jquery.dataTables.min.js"></script>
+
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
+
+	<script src="js/organisation.js"></script>
+	<script src="js/menu.js"></script>
+</body>
+</html>
