@@ -9,15 +9,15 @@ drop table if exists intermediary
 # in- and out-flows of intermediaries
 create_table_intermediary ="""
 CREATE TABLE intermediary(
-  inflow INTEGER,
+  inflow  INTEGER,
   outflow INTEGER,
   balance INTEGER,
-  source_org VARCHAR,
-  source_acc VARCHAR,
+  source_org       VARCHAR,
+  source_acc       VARCHAR,
   intermediary_org VARCHAR,
   intermediary_acc VARCHAR,
-  destination_org VARCHAR,
-  destination_acc VARCHAR
+  destination_org  VARCHAR,
+  destination_acc  VARCHAR
 )
 """
 # table
@@ -27,14 +27,14 @@ select
 	sum(tf.amount_usd) inflow,
 	sum(tt.amount_usd) outflow,
 	sum(tf.amount_usd) - sum(tt.amount_usd) balance,
-	tsa.code source_acc,       tso.name source_org,
-	tia.code intermediary_acc, tio.name intermediary_org,
-	tda.code destination_acc,  tdo.name destination_org
+	tso.name source_org,       tsa.code source_acc,       
+	tio.name intermediary_org, tia.code intermediary_acc,
+	tdo.name destination_org,  tda.code destination_acc  
 from "transaction" tf
 JOIN "transaction" tt ON tf.beneficiary_id=tt.payee_id
 JOIN account tsa      ON tsa.id=tf.payee_id
 JOIN organisation tso ON tso.id=tsa.owner_id
-JOIN account tia      ON tia.id=tt.payee_id AND tia.id IS NOT NULL AND tia.code IS NOT NULL
+JOIN account tia      ON tia.id=tt.payee_id AND tia.id IS NOT NULL AND tia.code IS NOT NULL AND NOT tia.code = ""
 JOIN organisation tio ON tio.id=tia.owner_id
 JOIN account tda      ON tda.id=tt.beneficiary_id
 JOIN organisation tdo ON tdo.id=tda.owner_id
@@ -74,3 +74,6 @@ def init_intermediary_table():
 
 def init_derived():
 	init_intermediary_table()
+
+if __name__ == '__main__':
+	init_derived()
