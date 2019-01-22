@@ -2,7 +2,7 @@
 import json
 
 import bottle
-from bottle import get, route, request, run, error, static_file
+from bottle import get, route, request, response, run, error, static_file
 
 from settings import host, port, static_path
 from settings import curdir, db_url
@@ -12,6 +12,7 @@ import banks, organisations
 
 import datatables
 
+# Errors
 @error(404)
 def mistake404(code):
     return 'Sorry, this page does not exist.'
@@ -32,10 +33,24 @@ def mistake500(code):
 def mistake504(code):
     return 'Unable to access internal service.'
 
+# Object requests
 @route('/owner/<code>', method=['GET'])
 def get_organisation_by_account(code):
 	return banks.query_organisation_by_account(code)
 
+# Summary
+@route('/summary/intermediaries', method=['GET'])
+def get_summary_intermediaries():
+	return datatables.get_intermediaries_count()
+
+@route('/summary', method=['GET'])
+def get_summary():
+	response.content_type = "application/json; charset=utf-8"
+	return {"intermediaries": datatables.get_intermediaries_count(),\
+		"period": banks.query_period(),\
+		"amount": banks.query_total_amount()}
+
+# Datatables
 def _prepare_datatable_parameters(request):
 	draw = request.query['draw']
 	start = request.query['start']
@@ -107,6 +122,7 @@ def get_datatable_outgoing(org_id):
 	response = datatables.get_datatable_outgoing(int(org_id), *params)
 	return response
 
+# Static resources
 @route('/<resource_type:re:(js|css|images)>/<filename:re:.*\.(js|css|png)>')
 def send_resource(resource_type, filename):
 	return static_file(filename, root=static_path + resource_type)
@@ -115,6 +131,7 @@ def send_resource(resource_type, filename):
 @route('/<filename:re:.*\.html>')
 def send_page(filename='index.html'):
 	return static_file(filename, root=static_path[:-1]) # bottle wants root path without trailing slash
+
 
 if __name__ == '__main__':
     run(host=host, port=port, reloader=True, debug=debug)

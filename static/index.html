@@ -27,6 +27,24 @@
 	<meta property="og:url" content="https://github.com/mapto/CashWash/" />
 	<!--<meta property="og:image" content="images/logo.png" />-->	<!-- higher resolution than favicon -->
 	<meta property="og:description" content="Exploration of illicit transactions for invesigative purposes" /> <!-- duplicate of meta description -->
+	<style>
+figure {
+	text-align: center;
+	font-size: 1.5em;
+}
+
+figure div {
+	font-size: 2.3em;
+}
+
+#intermediaries {
+	font-size: 1.2em;	
+}
+
+time {
+	font-size: 1.5em;	
+}
+	</style>
 
 </head>
 
@@ -36,19 +54,23 @@
 	<div class="container-fluid">
 		<div class="row">
 			<div class="col-12">
-				<table id="data">
-		        <thead>
-		            <tr>
-		                <th>Amount (USD)</th>
-		                <th>From (Org)</th>
-		                <th>From (Acc)</th>
-		                <th>To (Org)</th>
-		                <th>To (Acc)</th>
-		                <th>Currency</th>
-		                <th>Date</th>
-		            </tr>
-		        </thead>
-				</table>
+				<figure>
+					<div>$<span id="amount"></span></div>
+					<figcaption>transferred</figcaption>
+				</figure>
+			</div>
+			<div class="col-6">
+				<figure>
+					<figcaption>In the period</figcaption>
+					<div><time id="periodFrom"></time> - <time id="periodTo"></time></div>
+				</figure>
+			</div>
+			<div class="col-6">
+				<figure>
+					<figcaption>through</figcaption>
+					<div><span id="intermediaries"></span></div>
+					<figcaption>intermediaries</figcaption>
+				</figure>
 			</div>
 		</div>
 	</div>
@@ -59,7 +81,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 
-	<script src="js/transactions.js"></script>
 	<script src="js/menu.js"></script>
+	<script src="js/summary.js"></script>
 </body>
 </html>

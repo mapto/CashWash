@@ -13,7 +13,7 @@ from bank_util import account_type
 import api_bank_codes
 
 from dataclean import clean_name
-from util import is_blank
+from util import is_blank, format_amount
 
 # Data interfaces
 
@@ -185,6 +185,22 @@ def clean_local_accounts():
 
 
 # Portal-related services
+def query_period():
+	s = Session()
+	result = s.query(func.min(Transaction.date).label("start"),\
+		func.max(Transaction.date).label("end")).one()
+	s.close()
+	return {"from": result.start.year, "to": result.end.year + 1}
+
+def query_total_amount():
+	s = Session()
+	stmt = """
+select sum(inflow) inflow, sum(outflow) outflow
+from intermediary
+	"""
+	result = s.execute(stmt).first()
+	s.close()
+	return format_amount(min(result.inflow, result.outflow))
 
 def query_organisation_by_account(code):
 	s = Session()
@@ -233,6 +249,7 @@ from intermediary
 		column("intermediary_org"), column("intermediary_acc"),\
 		column("destination_org"), column("destination_acc")])\
 		.select_from(subquery)
+
 
 if __name__ == '__main__':
 	preload_cached_accounts()

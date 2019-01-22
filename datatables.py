@@ -23,7 +23,7 @@ def _read_order(cols, request_args):
 			break
 	return order	
 
-def _total_pages(statement):
+def _total_records(statement):
 	s = Session()
 	result = s.execute(statement).fetchall()
 	s.close()
@@ -39,14 +39,20 @@ def _get_page(statement, page_num=0, page_size=25, order=default_order):
 	s.close()
 	return result
 
+# TODO: move to banks
+def get_intermediaries_count():
+	q = banks.get_intermediaries_statement()
+	total_records = _total_records(q)
+	return total_records
+
 def get_datatable_transactions(draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 
 	q = banks.get_transactions_statement()
-	total_pages = _total_pages(q)
+	total_records = _total_records(q)
 
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[format_amount(t.amount_usd),\
 			t.payee_org, t.payee_acc,\
 			t.beneficiary_org, t.beneficiary_acc, t.currency, t.date.date().isoformat()]\
@@ -57,10 +63,10 @@ def get_datatable_intermediaries(draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 
 	q = banks.get_intermediaries_statement()
-	total_pages = _total_pages(q)
+	total_records = _total_records(q)
 
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[\
 			format_amount(t.inflow), format_amount(t.outflow), format_amount(t.balance),\
 			t.source_org, t.source_acc,\
@@ -73,9 +79,9 @@ def get_datatable_aliases(org_id, draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 
 	q = organisations.get_aliases_statement(org_id)
-	total_pages = _total_pages(q)
+	total_records = _total_records(q)
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[t.alias, t.country]\
 			for t in _get_page(q, page, length, order)]}
 	return response
@@ -84,9 +90,9 @@ def get_datatable_accounts(org_id, draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 
 	q = organisations.get_accounts_statement(org_id)
-	total_pages = _total_pages(q)
+	total_records = _total_records(q)
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[t.code, t.bank]\
 			for t in _get_page(q, page, length, order)]}
 	return response
@@ -95,9 +101,9 @@ def get_datatable_incoming(org_id, draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 
 	q = organisations.get_incoming_statement(org_id)
-	total_pages = _total_pages(q)
+	total_records = _total_records(q)
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[format_amount(t.total), t.source]\
 			for t in _get_page(q, page, length, order)]}
 	return response
@@ -106,9 +112,9 @@ def get_datatable_outgoing(org_id, draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 
 	q = organisations.get_outgoing_statement(org_id)
-	total_pages = _total_pages(q)
+	total_records = _total_records(q)
 	response = {"draw": draw, "length": length, "start": start, \
-		"recordsTotal": total_pages, "recordsFiltered": total_pages,\
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[format_amount(t.total), t.destination]\
 			for t in _get_page(q, page, length, order)]}
 	return response
