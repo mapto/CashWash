@@ -113,10 +113,8 @@ def send_resource(resource_type, filename):
 
 @route('/')
 @route('/<filename:re:.*\.html>')
-def send_page(filename=None):
-	if not filename:
-		filename = 'index.html'
-	return static_file(filename, root=static_path)
+def send_page(filename='index.html'):
+	return static_file(filename, root=static_path[:-1]) # bottle wants root path without trailing slash
 
 if __name__ == '__main__':
     run(host=host, port=port, reloader=True, debug=debug)
