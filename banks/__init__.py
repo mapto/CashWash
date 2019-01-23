@@ -5,7 +5,9 @@ from settings import data_path, dateformat_log
 
 from .util import account_type
 
-from .banks import query_organisation_by_account, get_account_by_code
+from .api_bank_codes import get_account_bank_code, get_account_bank_name, get_account_country
+
+from .banks import query_organisation_by_account, get_account_by_code, get_bank
 #from .banks import query_period, query_total_amount
 from .banks import get_intermediaries_statement, get_transactions_statement
 from .banks import account_bank_code

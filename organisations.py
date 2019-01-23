@@ -33,7 +33,7 @@ def upsert_organisation(name, org_type, core):
 	return org
 
 def merge_organisations(this_id, that_id):
-	"""remove short_code account"""
+	"""remove organisation with that_id"""
 	success = True
 	s = Session()
 	this = _get_organisation(s, this_id)
@@ -62,7 +62,7 @@ def merge_organisations(this_id, that_id):
 
 	s.delete(that)
 	s.commit()
-	s.close
+	s.close()
 	return success
 
 def _get_organisation(s, org_id):

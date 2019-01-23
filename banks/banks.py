@@ -11,7 +11,7 @@ from organisations import merge_organisations
 #from util import is_blank, format_amount
 
 from .util import account_type
-from .api_bank_codes import get_account_bank_name, get_account_bank_code
+from .api_bank_codes import get_account_bank_name, get_account_bank_code, get_cached_accounts
 
 # Data interfaces
 
@@ -35,7 +35,7 @@ def upsert_account(code, acc_type, bank, company=None):
 		if acc.organisation:
 			if company and company != acc.organisation:
 				print("Account %s with different owner: old: %s; new: %s"\
-					%(code, acc.organisation.name, company.name))
+					%(code, acc.organisation, company))
 				merge_organisations(acc.organisation.id, company.id)
 		elif company:
 				acc.organisation = company

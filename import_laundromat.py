@@ -64,13 +64,16 @@ def read_role(row, role):
 			org = organisations.upsert_organisation(norm, org_type, core)
 
 		organisations.upsert_alias(name, org, jurisdiction)
+		# TOOD: Does session management mean that when norm==name entries get duplicated?
 		organisations.upsert_alias(norm, org, jurisdiction)
 	else:
 		org = organisations.upsert_organisation(norm, org_type, core)
 		organisations.upsert_alias(name, org, jurisdiction)
 		organisations.upsert_alias(norm, org, jurisdiction)
 
-		acc_bank = banks.upsert_bank(jurisdiction, bank_code=bank_code, name=bank_name)
+		acc_bank = banks.get_bank(jurisdiction, bank_code)
+		if not acc_bank:
+			acc_bank = banks.upsert_bank(jurisdiction, bank_code=bank_code, name=bank_name)
 		account = banks.upsert_account(code, acc_type, acc_bank, org)
 
 	return account
@@ -118,12 +121,13 @@ def json2db(data):
 		"payer_bank_country": "33"
 	}
 	'''
-	print("Preloading Jurisdictions...")
+	print("Preloading jurisdictions...")
 	jurisdictions.preload_jurisdictions()
 	print("Preloading cached accounts...")
 	banks.preload_cached_accounts()
 	print("Importing transactions...")
 	total = len(data); counter = 0
+	start = datetime.now()
 	for row in data:
 		# print(row)
 		counter += 1
@@ -132,6 +136,9 @@ def json2db(data):
 		to_acc = read_role(row, "beneficiary")
 
 		read_transaction(row, from_acc, to_acc)
+	end = datetime.now()
+	elapsed = (end-start).total_seconds()
+	print("Transactions imported in %d mins %f secs." % (elapsed//60, elapsed%60))
 	print("Merging duplicate accounts...")
 	banks.clean_local_accounts()
 	print("Generating views...")

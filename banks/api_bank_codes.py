@@ -1,12 +1,11 @@
-#!/usr/bin/env python3
-
 from os import path
 from datetime import datetime
 import json
+from requests.exceptions import ConnectionError
 
 from . import api_key, data_path, dateformat_log
 
-import api_util as util
+from api_util import get_json_cached
 
 from .util import account_type
 
@@ -55,7 +54,7 @@ def _get_account_info(code):
 		raise PermissionError("Missing API key")
 	if _limit_queries(query_path, query_counter):
 		raise PermissionError("Daily limit reached")
-	return util.get_json_cached(query_path, urls[acc_type] + code)
+	return get_json_cached(query_path, urls[acc_type] + code)
 
 def get_cached_accounts():
 	from glob import glob
@@ -66,7 +65,8 @@ def get_cached_accounts():
 def get_account_country(code):
 	try:
 		data = _get_account_info(code)
-	except PermissionError:
+	except (PermissionError, ConnectionError) as err:
+		print(err)
 		return None
 
 	valid = False
@@ -86,7 +86,8 @@ def get_account_country(code):
 def get_account_bank_name(code):
 	try:
 		data = _get_account_info(code)
-	except PermissionError:
+	except (PermissionError, ConnectionError) as err:
+		print(err)
 		return None
 
 	valid = False
@@ -112,7 +113,8 @@ def get_account_bank_name(code):
 def get_account_bank_code(code):
 	try:
 		data = _get_account_info(code)
-	except PermissionError:
+	except (PermissionError, ConnectionError) as err:
+		print(err)
 		return None
 
 	valid = False
@@ -134,26 +136,3 @@ def get_account_bank_code(code):
 	if "bank" in data:
 		return data["bank"]
 	return None
-
-if __name__ == '__main__':
-	"""
-	swifts = ["BARCGB22", "BOTKGB2L", "COBADEFFXXX", "BKCHCNBJ", "BKCHHKHH",\
-		"BKTRUS33", "DEUTDEFFXXX", "BOFAUS3N", "HASEHKHH", "HEBACY2N", "HSBCHKHHHKH",\
-		"HSBCHKHHHKH", "AIZKLV22XXX", "HYIBLI22", "IDBLILIT", "KABANL2A",\
-		"NORSDE71", "NRAKAEAK", "OWHBDEFF", "PAHAAZ22", "TDOMUS33", "UBSWCHZH80A",\
-		"VOAGLI22", "YAPITRIS"]
-	for next in swifts:
-		print(get_account_bank_name(next))
-		print(get_account_country(next))
-	"""
-	from datatables import get_datatable_intermediaries
-	l = get_datatable_intermediaries(None, 0, 20, order={"col": 1, "dir": "desc"})
-	from bank_util import account_type
-
-	# import json; print(json.dumps(l))
-	for row in l["data"]:
-		if row[6] and account_type(row[6]) == "IBAN":
-			print(row[6])
-			print(_get_account_info(row[6]))
-			print(get_account_bank_name(row[6]))
-			print(get_account_country(row[6]))

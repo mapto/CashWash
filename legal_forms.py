@@ -44,5 +44,6 @@ legal_forms = {\
 	"IE": ["LTD"],\
 	"IL": ["LTD"],\
 	"IN": ["LTD"],\
+	"RU": ["OAO", "OOO"],\
 	"US": ["INC", "HOLDING"]\
 }

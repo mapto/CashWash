@@ -51,3 +51,6 @@ def preload_jurisdictions():
 	s.add_all(all)
 	s.commit()
 	s.close()
+
+if __name__ == '__main__':
+	preload_jurisdictions()

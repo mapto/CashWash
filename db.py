@@ -68,7 +68,8 @@ class Organisation(Base):
 		return json.dumps(self.json())
 
 	def json(self):
-		return {"id": self.id, "name": self.name, "date": self.date_created.date().isoformat()} #,\
+		return {"id": self.id, "name": self.name} #,\
+		#return {"id": self.id, "name": self.name, "date": self.date_created.date().isoformat()} #,\
 		#	"accounts": [a.code for a in self.accounts],\
 		#	"aliases": [a.alias for a in self.aliases]}
 		#return str({"name": self.name, "date": self.date_created.date().isoformat()})
@@ -81,7 +82,7 @@ class Jurisdiction(Base):
 	id = Column(Integer, primary_key=True)
 
 	name = Column(String)
-	code = Column(String)
+	code = Column(String, unique=True)
 
 	aliases = relationship("Alias", back_populates="jurisdiction")
 	banks = relationship("Bank", back_populates="jurisdiction")
