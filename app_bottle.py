@@ -39,16 +39,9 @@ def get_organisation_by_account(code):
 	return banks.query_organisation_by_account(code)
 
 # Summary
-@route('/summary/intermediaries', method=['GET'])
-def get_summary_intermediaries():
-	return datatables.get_intermediaries_count()
-
 @route('/summary', method=['GET'])
 def get_summary():
-	response.content_type = "application/json; charset=utf-8"
-	return {"intermediaries": datatables.get_intermediaries_count(),\
-		"period": banks.query_period(),\
-		"amount": banks.query_total_amount()}
+	return static_file("summary.json", root=static_path + "js") # bottle wants root path without trailing slash
 
 # Datatables
 def _prepare_datatable_parameters(request):

@@ -8,12 +8,10 @@ from db import Account, Transaction, Organisation, Bank
 from jurisdictions import jurisdiction_by_code
 from organisations import merge_organisations
 
-from bank_util import account_type
+#from util import is_blank, format_amount
 
-import api_bank_codes
-
-from dataclean import clean_name
-from util import is_blank, format_amount
+from .util import account_type
+from .api_bank_codes import get_account_bank_name, get_account_bank_code
 
 # Data interfaces
 
@@ -133,8 +131,8 @@ def bank_from_swift(code):
 	country_code = code[4:6]
 	jurisdiction = jurisdiction_by_code(country_code)
 
-	name = api_bank_codes.get_account_bank_name(code)
-	bank_code = api_bank_codes.get_account_bank_code(code)
+	name = get_account_bank_name(code)
+	bank_code = get_account_bank_code(code)
 	return upsert_bank(name=name, bank_code=bank_code, jurisdiction=jurisdiction)
 
 def account_from_iban(code):
@@ -150,21 +148,17 @@ def account_from_iban(code):
 def account_bank_code(code):
 	acc_type = account_type(code)
 	if acc_type == "IBAN":
-		return api_bank_codes.get_account_bank_code(code)
+		return get_account_bank_code(code)
 	if acc_type == "SWIFT":
 		#if len(code) == 8:
 		#	code = code + "XXX"
-		return api_bank_codes.get_account_bank_code(code)
+		return get_account_bank_code(code)
 	return None
 
 def preload_cached_accounts():
-	from glob import glob
-	glob = glob(api_bank_codes.bank_codes_path + "*.json")
 	swift = []
 	iban = []
-	prefix_len = len(api_bank_codes.bank_codes_path)
-	for path in glob:
-		code = path[prefix_len:-5]
+	for code in get_cached_accounts():
 		if len(code) < 12: # SWIFT
 			swift.append(bank_from_swift(code))
 		else: # IBAN
@@ -185,23 +179,6 @@ def clean_local_accounts():
 
 
 # Portal-related services
-def query_period():
-	s = Session()
-	result = s.query(func.min(Transaction.date).label("start"),\
-		func.max(Transaction.date).label("end")).one()
-	s.close()
-	return {"from": result.start.year, "to": result.end.year + 1}
-
-def query_total_amount():
-	s = Session()
-	stmt = """
-select sum(inflow) inflow, sum(outflow) outflow
-from intermediary
-	"""
-	result = s.execute(stmt).first()
-	s.close()
-	return format_amount(min(result.inflow, result.outflow))
-
 def query_organisation_by_account(code):
 	s = Session()
 	org = s.query(Organisation).join(Account, Account.owner_id==Organisation.id).filter(Account.code==code).first()

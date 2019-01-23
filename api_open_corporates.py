@@ -13,8 +13,6 @@ from settings import dateformat_log
 
 import api_util as util
 
-import banks
-
 oc_path = data_path + 'opencorporates/'
 
 # see documentation at

@@ -1,6 +1,14 @@
 """sqlite syntax"""
 
-from db import Session
+import json
+from sqlalchemy import func
+
+from db import Session, Transaction
+from util import format_amount
+
+from settings import static_path
+
+summary_json = static_path + "js/summary.json"
 
 drop_table_intermediary ="""
 drop table if exists intermediary
@@ -72,8 +80,42 @@ def init_intermediary_table():
 	s.commit()
 	s.close()
 
+def get_intermediaries_count():
+	stmt = """
+select count(intermediary_org) from intermediary
+	"""
+	s = Session()
+	result = s.execute(stmt).first()
+	s.close()
+	return int(result.values()[0])
+
+def query_period():
+	s = Session()
+	result = s.query(func.min(Transaction.date).label("start"),\
+		func.max(Transaction.date).label("end")).one()
+	s.close()
+	return {"from": int(result.start.year), "to": int(result.end.year) + 1}
+
+def query_total_amount():
+	stmt = """
+select sum(inflow) inflow, sum(outflow) outflow
+from intermediary
+	"""
+	s = Session()
+	result = s.execute(stmt).first()
+	s.close()
+	return format_amount(min(result.inflow, result.outflow))
+
+def init_summary():
+	result = {"intermediaries": get_intermediaries_count(),\
+		"period": query_period(),\
+		"amount": query_total_amount()}
+	with open(summary_json, "w") as fjson:
+		json.dump(result, fjson)
+
 def init_derived():
 	init_intermediary_table()
 
 if __name__ == '__main__':
 	init_derived()
+	init_summary()

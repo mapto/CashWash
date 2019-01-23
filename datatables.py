@@ -39,12 +39,6 @@ def _get_page(statement, page_num=0, page_size=25, order=default_order):
 	s.close()
 	return result
 
-# TODO: move to banks
-def get_intermediaries_count():
-	q = banks.get_intermediaries_statement()
-	total_records = _total_records(q)
-	return total_records
-
 def get_datatable_transactions(draw, start=0, length=25, order=None):
 	page = start/length if start and length else 0
 

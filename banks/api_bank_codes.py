@@ -4,16 +4,11 @@ from os import path
 from datetime import datetime
 import json
 
-from private import bankcodes_api_key as api_key
-from settings import data_path
-from settings import dateformat_log
-
-from settings import data_path
-
+from . import api_key, data_path, dateformat_log
 
 import api_util as util
 
-from bank_util import account_type
+from .util import account_type
 
 bank_codes_path = data_path + 'bank_codes/'
 
@@ -61,6 +56,12 @@ def _get_account_info(code):
 	if _limit_queries(query_path, query_counter):
 		raise PermissionError("Daily limit reached")
 	return util.get_json_cached(query_path, urls[acc_type] + code)
+
+def get_cached_accounts():
+	from glob import glob
+	files = glob(bank_codes_path + "*.json")
+	prefix_len = len(bank_codes_path)
+	return [path[prefix_len:-5] for path in files]
 
 def get_account_country(code):
 	try:
