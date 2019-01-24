@@ -127,7 +127,6 @@ def search_entities(term, domain="companies", jurisdiction=None):
 	# query_path = base_url + "companies" + "/" + (search_url % term) + "&" + token_var
 	query_url = _build_search_url(term, domain, jurisdiction)
 	query_path = oc_path + _build_search_file(term, domain, jurisdiction)
-	print(query_url)
 	return _perform_search(query_path, query_url)
 
 def search_statements(term, domain="control_statements", jurisdiction=None):

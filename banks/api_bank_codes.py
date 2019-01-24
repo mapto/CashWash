@@ -4,6 +4,8 @@ import json
 from requests.exceptions import ConnectionError
 
 from . import api_key, data_path, dateformat_log
+#from . import debug
+debug = False
 
 from api_util import get_json_cached
 
@@ -23,7 +25,7 @@ urls = {"IBAN": iban_url, "SWIFT": swift_url}
 datestamp = datetime.now().strftime(dateformat_log[:6])
 
 #query_limit = 50
-query_limit = 19
+query_limit = 20
 counter_path = "%scounter.%s.txt" % (bank_codes_path, datestamp)
 query_counter = False
 
@@ -37,7 +39,7 @@ def _limit_queries(query_path, query_counter):
 			query_counter = 0
 
 	if not path.exists(query_path):
-		if query_counter >= query_limit:
+		if query_counter > query_limit:
 			return True
 	
 		query_counter += 1
@@ -66,7 +68,7 @@ def get_account_country(code):
 	try:
 		data = _get_account_info(code)
 	except (PermissionError, ConnectionError) as err:
-		print(err)
+		if debug: print(err)
 		return None
 
 	valid = False
@@ -87,7 +89,7 @@ def get_account_bank_name(code):
 	try:
 		data = _get_account_info(code)
 	except (PermissionError, ConnectionError) as err:
-		print(err)
+		if debug: print(err)
 		return None
 
 	valid = False
@@ -114,7 +116,7 @@ def get_account_bank_code(code):
 	try:
 		data = _get_account_info(code)
 	except (PermissionError, ConnectionError) as err:
-		print(err)
+		if debug: print(err)
 		return None
 
 	valid = False
@@ -136,3 +138,14 @@ def get_account_bank_code(code):
 	if "bank" in data:
 		return data["bank"]
 	return None
+
+def account_bank_code(code):
+	acc_type = account_type(code)
+	if acc_type == "IBAN":
+		return get_account_bank_code(code)
+	if acc_type == "SWIFT":
+		#if len(code) == 8:
+		#	code = code + "XXX"
+		return get_account_bank_code(code)
+	return None
+

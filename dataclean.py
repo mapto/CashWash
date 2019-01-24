@@ -40,7 +40,7 @@ def normalize(name, jurisdiction = None):
 	return " ".join(result)
 
 def clean_name(name, jurisdiction=None):
-	result = normalize(name, jurisdiction)
+	result = normalize(name.strip(), jurisdiction)
 	return alias[result] if result in alias else result
 
 def clean_names(df):

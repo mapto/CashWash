@@ -1,6 +1,6 @@
 from sqlalchemy import alias, text, select, column
 
-from db import Session, session as s
+from db import Session
 from db import Organisation, Alias, Jurisdiction, Account, Transaction
 
 from dataclean import clean_name
@@ -10,8 +10,8 @@ def upsert_organisation(name, org_type, core):
 	"""Includes normalisation
 	Update not implemented
 	"""
-
-	org = organisation_by_name(name)
+	s = Session()
+	org = _organisation_by_name(s, name)
 	if org:
 		#if name_norm != None and name_norm != org.name_norm:
 		#	print("Organisation %s with different normalised name: old: '%s'; new: '%s'"\
@@ -29,8 +29,9 @@ def upsert_organisation(name, org_type, core):
 		org = Organisation(name=name, org_type=org_type, core=core)
 		s.add(org)
 		s.commit()
-
-	return org
+	result = org.id
+	s.close()
+	return result
 
 def merge_organisations(this_id, that_id):
 	"""remove organisation with that_id"""
@@ -67,47 +68,61 @@ def merge_organisations(this_id, that_id):
 
 def _get_organisation(s, org_id):
 	return s.query(Organisation).get(org_id)
-
+'''
 def get_organisation(org_id):
 	s = Session()
 	org = _get_organisation(s, org_id)
 	result = org.json()
 	s.close()
 	return result
-
-def organisation_by_name(name):
+'''
+def _organisation_by_name(s, name):
 	return s.query(Organisation).filter(Organisation.name.like(name)).first()
 
-def upsert_alias(name, company, jurisdiction):
+def upsert_alias(name, org_id, jurisdiction_id):
 	"""Atomic operation
 	includes commit
 	does not include normalisation 
 	"""
+	s = Session()
 	name = clean_name(name)
-	if not name or not company:
+	if not name or not org_id:
 		return None
-	alias = get_alias(name, company, jurisdiction)
+	alias = _get_alias(s, name, org_id, jurisdiction_id)
 	if not alias:
-		alias = Alias(alias=name, organisation=company, jurisdiction=jurisdiction)
+		alias = Alias(alias=name, org_id=org_id, country_id=jurisdiction_id)
 		s.add(alias)
 
+	company = _get_organisation(s, org_id)
+	assert(company)
 	if len(name) < len(company.name):
 		company.name = name
 
 	s.commit()
-	return alias
-
+	result = alias.id
+	s.close()
+	return result
+'''
 def alias_by_name_and_owner(name, owner_id):
 	return s.query(Alias).filter(\
 		Alias.alias == name,
 		Alias.org_id == owner_id).first()
-
-def get_alias(name, organisation, jurisdiction):
+'''
+def _get_alias(s, name, org_id, country_id):
 	return s.query(Alias).filter(\
 		Alias.alias == name,\
-		Alias.organisation == organisation,\
-		Alias.jurisdiction == jurisdiction).first()
+		Alias.org_id == org_id,\
+		Alias.country_id == country_id).first()
 
+
+def _get_organisation_by_account(s, acc_id):
+	return s.query(Account).get(acc_id).owner_id
+
+def get_organisation_by_account(acc_id):
+	s = Session()
+	result = _get_organisation_by_account(s, acc_id)
+	s.close
+	return result
 
 def get_accounts_statement(org_id):
 	s = """

@@ -1,21 +1,24 @@
-from db import Session, session as s
+from db import Session
 from db import Jurisdiction
 
 from util import is_blank
 
 def upsert_jurisdiction(code):
+	s = Session()
 	if not code or is_blank(code):
 		return None
-	jurisdiction = jurisdiction_by_code(code)
+	jurisdiction = _jurisdiction_by_code(s, code)
 	if not jurisdiction:
 		jurisdiction = Jurisdiction(code=code)
 
 		s.add(jurisdiction)
 		s.commit()
+	result = jurisdiction.id
+	s.close()
 
-	return jurisdiction
-
-def link_organisation_jurisdiction(country, organisation): 
+	return result
+'''
+def _link_organisation_jurisdiction(s, country, organisation): 
 	"""Atomic operation
 	includes commit
 	does not include normalisation 
@@ -32,15 +35,27 @@ def link_organisation_jurisdiction(country, organisation):
 		s.commit()
 
 	return jurisdiction
-
-def jurisdiction_by_code(code):
+'''
+def _jurisdiction_by_code(s, code):
 	return s.query(Jurisdiction).filter(Jurisdiction.code == code).first()
 
-def jurisdiction_by_code_and_company(code, company):
+def jurisdiction_by_code(code):
+	s = Session()
+	result = _jurisdiction_by_code(s, code)
+	s.close()
+	return result.id
+'''
+def _jurisdiction_by_code_and_company(s, code, company):
 	return s.query(Jurisdiction).filter(\
 		Jurisdiction.code == code,\
 		company in Jurisdiction.companies).first()
 
+def jurisdiction_by_code_and_company(code, company):
+	s = Session()
+	return s.query(Jurisdiction).filter(\
+		Jurisdiction.code == code,\
+		company in Jurisdiction.companies).first()
+'''
 def preload_jurisdictions():
 	from import_jurisdictions import import_countries
 	

@@ -2,7 +2,7 @@ from sqlalchemy import select, delete
 from sqlalchemy import Integer, String, Boolean, DateTime
 from sqlalchemy import func, alias, text, column, bindparam
 
-from db import Session, session as s
+from db import Session
 from db import Account, Transaction, Organisation, Bank
 
 from jurisdictions import jurisdiction_by_code
@@ -11,51 +11,58 @@ from organisations import merge_organisations
 #from util import is_blank, format_amount
 
 from .util import account_type
-from .api_bank_codes import get_account_bank_name, get_account_bank_code, get_cached_accounts
+from .api_bank_codes import get_account_bank_name, get_account_bank_code, account_bank_code
+from .api_bank_codes import get_cached_accounts
 
 # Data interfaces
 
-def upsert_account(code, acc_type, bank, company=None):
+def upsert_account(code, acc_type, bank_id, org_id=None):
 	"""Atomic operation
 	includes commit
 	does not include normalisation 
 	"""
 	# TODO: Cleanup search of accounts
 	# Does not solve the entire problem. Remains scenario when local refereces comes before IBAN reference
+	s = Session()
 	acc = None
 	if acc_type == "LOCAL":
-		iban_acc = get_iban_account_by_local_code(code)
+		iban_acc = _get_iban_account_by_local_code(s, code)
 		if iban_acc:
 			acc = iban_acc
 			code = iban_acc.code
 			acc_type = "IBAN"
 
-	acc = acc if acc else get_account_by_code(code)
+	acc = acc if acc else _get_account_by_code(s, code)
 	if acc:
 		if acc.organisation:
-			if company and company != acc.organisation:
+
+			if org_id and org_id != acc.owner_id:
 				print("Account %s with different owner: old: %s; new: %s"\
-					%(code, acc.organisation, company))
-				merge_organisations(acc.organisation.id, company.id)
-		elif company:
-				acc.organisation = company
+					%(code, acc.owner_id, org_id))
+				merge_organisations(acc.owner_id, org_id)
+				org_id = acc.owner_id
+		elif org_id:
+				acc.owner_id = org_id
 	else:
-		owner_id = company.id if company else None
+		#bank = _get_bank(s, bank_id)
 		if code:
-			acc = Account(code=code, acc_type=acc_type, bank=bank, owner_id=owner_id)
+			acc = Account(code=code, acc_type=acc_type, bank_id=bank_id, owner_id=org_id)
 		else:
-			acc = Account(acc_type=acc_type, bank=bank, owner_id=owner_id)
+			acc = Account(acc_type=acc_type, bank_id=bank_id, owner_id=org_id)
 		
 		s.add(acc)
-		s.commit()
 
-	return acc
+	s.commit()
+	result = acc.id
+	s.close()
 
-def upsert_bank(jurisdiction, bank_code=None, name=None):
-	bank = get_bank(jurisdiction, bank_code)
+	return result
+
+def upsert_bank(jurisdiction_id, bank_code=None, name=None):
+	s = Session()
+	bank = _get_bank(s, jurisdiction_id, bank_code)
 	if not bank:
-		bank = Bank(code=bank_code, name=name, jurisdiction=jurisdiction)
-
+		bank = Bank(code=bank_code, name=name, country_id=jurisdiction_id)
 		s.add(bank)
 	elif name:
 		if not bank.name:
@@ -67,23 +74,49 @@ def upsert_bank(jurisdiction, bank_code=None, name=None):
 				bank.name = name
 
 	s.commit()
+	result = bank.id
+	s.close()
 
-	return bank
+	return result
 
-def get_bank(jurisdiction, bank_code=None):
-	return s.query(Bank).filter(Bank.jurisdiction == jurisdiction,Bank.code == bank_code).first()
+def _get_bank(s, jurisdiction_id, bank_code=None):
+	return s.query(Bank).filter(Bank.country_id == jurisdiction_id,Bank.code == bank_code).first()
 
-def get_account_by_code(code):
+def get_bank(jurisdiction_id, bank_code=None):
+	s = Session()
+	bank = _get_bank(s, jurisdiction_id, bank_code)
+	result = bank.id if bank else None
+	s.close()
+	return result
+
+def _get_account(s, acc_id):
+	return s.query(Account).get(acc_id)
+
+def _get_account_by_code(s, code):
 	return s.query(Account).filter(Account.code == code).first()
 
-def get_iban_account_by_local_code(code):
+def get_account_by_code(code):
+	s = Session()
+	acc = _get_account_by_code(s, code)
+	result = acc.id if acc else None
+	s.close()
+	return result
+
+def _get_iban_account_by_local_code(s, code):
 	return s.query(Account).filter(Account.code.like("%"+code), Account.acc_type=="IBAN").first()
 
-def insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
-		investigation, purpose, date, source_file, from_account, to_account):
+def get_iban_account_by_local_code(code):
+	s = Session()
+	result = _get_iban_account_by_local_code(s, code)
+	s.close()
+	return result.id
 
-	from_acc = get_account_by_code(from_account.code) if from_account else None
-	to_acc = get_account_by_code(to_account.code) if to_account else None
+def insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
+		investigation, purpose, date, source_file, from_acc_id, to_acc_id):
+	s = Session()
+
+	from_acc = _get_account(s, from_acc_id) if from_acc_id else None
+	to_acc = _get_account(s, to_acc_id) if to_acc_id else None
 	trx = Transaction(amount_orig=amount_orig, amount_usd=amount_usd, amount_eur=amount_eur,\
 		currency=currency, investigation=investigation,\
 		purpose=purpose, date=date, source_file=source_file,\
@@ -92,7 +125,7 @@ def insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
 	s.add(trx)
 	s.commit()
 
-	return trx
+	return trx.id
 
 def _query_incoming_transactions(acc):
 	s = Session.object_session(acc)
@@ -129,31 +162,21 @@ def _query_iban_account_candidate(local_acc):
 
 def bank_from_swift(code):
 	country_code = code[4:6]
-	jurisdiction = jurisdiction_by_code(country_code)
+	jurisdiction_id = jurisdiction_by_code(country_code)
 
 	name = get_account_bank_name(code)
 	bank_code = get_account_bank_code(code)
-	return upsert_bank(name=name, bank_code=bank_code, jurisdiction=jurisdiction)
+	return upsert_bank(name=name, bank_code=bank_code, jurisdiction_id=jurisdiction_id)
 
 def account_from_iban(code):
 	country_code = code[0:2]
-	jurisdiction = jurisdiction_by_code(country_code)
+	jurisdiction_id = jurisdiction_by_code(country_code)
 
 	acc_type = account_type(code)
 	bank_code = account_bank_code(code)
-	b = upsert_bank(bank_code=bank_code, jurisdiction=jurisdiction)
+	b = upsert_bank(bank_code=bank_code, jurisdiction_id=jurisdiction_id)
 
-	acc = upsert_account(code, acc_type, b)
-
-def account_bank_code(code):
-	acc_type = account_type(code)
-	if acc_type == "IBAN":
-		return get_account_bank_code(code)
-	if acc_type == "SWIFT":
-		#if len(code) == 8:
-		#	code = code + "XXX"
-		return get_account_bank_code(code)
-	return None
+	return upsert_account(code, acc_type, b)
 
 def preload_cached_accounts():
 	swift = []

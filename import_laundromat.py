@@ -53,33 +53,30 @@ def read_role(row, role):
 	elif acc_type == "SWIFT":
 		acc_country = code[4:6]		
 
-	jurisdiction = jurisdictions.upsert_jurisdiction(country)
-	acc_jurisdiction = jurisdictions.upsert_jurisdiction(acc_country)
+	jurisdiction_id = jurisdictions.upsert_jurisdiction(country)
+	acc_jurisdiction_id = jurisdictions.upsert_jurisdiction(acc_country)
 
-	account = banks.get_account_by_code(code)
-	if account:
-		if account.organisation:
-			org = account.organisation
-		else:
-			org = organisations.upsert_organisation(norm, org_type, core)
+	acc_id = banks.get_account_by_code(code)
+	if acc_id:
+		org_id = organisations.get_organisation_by_account(acc_id)\
+			or organisations.upsert_organisation(norm, org_type, core)
 
-		organisations.upsert_alias(name, org, jurisdiction)
+		organisations.upsert_alias(name, org_id, jurisdiction_id)
 		# TOOD: Does session management mean that when norm==name entries get duplicated?
-		organisations.upsert_alias(norm, org, jurisdiction)
+		organisations.upsert_alias(norm, org_id, jurisdiction_id)
 	else:
-		org = organisations.upsert_organisation(norm, org_type, core)
-		organisations.upsert_alias(name, org, jurisdiction)
-		organisations.upsert_alias(norm, org, jurisdiction)
+		org_id = organisations.upsert_organisation(norm, org_type, core)
+		organisations.upsert_alias(name, org_id, jurisdiction_id)
+		organisations.upsert_alias(norm, org_id, jurisdiction_id)
 
-		acc_bank = banks.get_bank(jurisdiction, bank_code)
-		if not acc_bank:
-			acc_bank = banks.upsert_bank(jurisdiction, bank_code=bank_code, name=bank_name)
-		account = banks.upsert_account(code, acc_type, acc_bank, org)
+		acc_bank_id = banks.get_bank(jurisdiction_id, bank_code)\
+			or banks.upsert_bank(jurisdiction_id, bank_code=bank_code, name=bank_name)
+		acc_id = banks.upsert_account(code, acc_type, acc_bank_id, org_id)
 
-	return account
+	return acc_id
 
 
-def read_transaction(row, from_account, to_account):
+def read_transaction(row, from_acc_id, to_acc_id):
 	amount_orig = util.parse_amount(row['amount_orig'])
 	amount_usd = util.parse_amount(row['amount_usd'])
 	amount_eur = util.parse_amount(row['amount_eur'])
@@ -91,7 +88,7 @@ def read_transaction(row, from_account, to_account):
 	source_file = row['source_file']
 
 	return banks.insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
-		investigation, purpose, date, source_file, from_account, to_account)
+		investigation, purpose, date, source_file, from_acc_id, to_acc_id)
 
 def json2db(data):
 	'''

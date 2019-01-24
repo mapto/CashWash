@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.pool import SingletonThreadPool
-from sqlalchemy import Column, ForeignKey, func 
+from sqlalchemy import Column, ForeignKey, Index, func 
 from sqlalchemy import Integer, String, Boolean, DateTime
 
 from settings import db_url, db_path, dateformat_log
@@ -41,11 +41,13 @@ class Alias(Base):
 	jurisdiction = relationship("Jurisdiction", back_populates="aliases")
 	
 	def json(self):
-		return {"id": id, "alias": alias, "org": org_id, "country": country_id, "date": date_created.date().isoformat()}
+		return {"id": self.id, "alias": self.alias, "org": self.org_id,\
+			"country": self.country_id, "date": self.date_created.date().isoformat()}
 	
 	def __repr__(self):
 		return json.dumps(self.json())
 	
+Index("AliasIndex", "alias", "country_id", "org_id", unique=True)
 
 class Organisation(Base):
 	__tablename__ = 'organisation'
@@ -58,7 +60,8 @@ class Organisation(Base):
 	# bank_country = Column(String) # automatically extracted, TBV
 	org_type = Column(String) # Company, Person, Invalid
 	core = Column(Boolean)
-
+	fetched = Column(Boolean, default=False)
+	
 	date_created = Column(DateTime, default=func.current_timestamp())
 
 	accounts = relationship("Account", back_populates="organisation")
@@ -104,8 +107,9 @@ class Account(Base):
 
 	#detail = Column(Integer, ForeignKey("account_detail.id"))
 	owner_id = Column(Integer, ForeignKey("organisation.id"))
-	bank_id = Column(Integer, ForeignKey("bank.id"))
+	bank_id = Column(Integer, ForeignKey("bank.id"), nullable=False)
 
+	fetched = Column(Boolean, default=False)
 	date_created = Column(DateTime, default=func.current_timestamp())
 
 	bank = relationship("Bank", back_populates="accounts")
@@ -119,7 +123,7 @@ class Account(Base):
 		return json.dumps(self.json())
 
 	def json(self):
-		return {"code": self.code, "organisation": self.organisation,\
+		return {"code": self.code, "organisation": self.owner_id,\
 			"date": self.date_created.date().isoformat()}
 
 """
@@ -162,6 +166,7 @@ class Bank(Base):
 
 	country_id = Column(Integer, ForeignKey("jurisdiction.id"))
 
+	fetched = Column(Boolean, default=False)
 	date_created = Column(DateTime, default=func.current_timestamp())
 
 	jurisdiction = relationship("Jurisdiction", back_populates="banks")
