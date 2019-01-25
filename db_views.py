@@ -116,6 +116,9 @@ def init_summary():
 def init_derived():
 	init_intermediary_table()
 
-if __name__ == '__main__':
+def init():
 	init_derived()
-	init_summary()
+	init_summary()	
+
+if __name__ == '__main__':
+	init()

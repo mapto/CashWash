@@ -39,7 +39,7 @@ def _prepare_datatable_parameters(request):
 	return (draw, start, length, order)	
 
 # Summary
-@route('/summary', method=['GET'])
+@app.route('/summary', methods=['GET'])
 def get_summary():
 	return send_from_directory(static_path + "js", "summary.json")
 

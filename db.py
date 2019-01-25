@@ -9,7 +9,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, relationship
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.pool import SingletonThreadPool
-from sqlalchemy import Column, ForeignKey, Index, func 
+from sqlalchemy import Column, ForeignKey, UniqueConstraint, Index, func 
 from sqlalchemy import Integer, String, Boolean, DateTime
 
 from settings import db_url, db_path, dateformat_log
@@ -40,9 +40,13 @@ class Alias(Base):
 	organisation = relationship("Organisation", back_populates="aliases")
 	jurisdiction = relationship("Jurisdiction", back_populates="aliases")
 	
+
+	__table_args__ = (UniqueConstraint("alias", "country_id", "org_id"),)
+
 	def json(self):
 		return {"id": self.id, "alias": self.alias, "org": self.org_id,\
-			"country": self.country_id, "date": self.date_created.date().isoformat()}
+			"country": self.country_id}
+			#"country": self.country_id, "date": self.date_created.date().isoformat()}
 	
 	def __repr__(self):
 		return json.dumps(self.json())
@@ -123,8 +127,9 @@ class Account(Base):
 		return json.dumps(self.json())
 
 	def json(self):
-		return {"code": self.code, "organisation": self.owner_id,\
-			"date": self.date_created.date().isoformat()}
+		return {"code": self.code, "organisation": self.owner_id, "bank": bank_id}
+		#return {"code": self.code, "organisation": self.owner_id,\
+		#	"date": self.date_created.date().isoformat()}
 
 """
 class AccountDetail(Base):

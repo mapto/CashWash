@@ -60,12 +60,11 @@ def read_role(row, role):
 	if acc_id:
 		org_id = organisations.get_organisation_by_account(acc_id)\
 			or organisations.upsert_organisation(norm, org_type, core)
-
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
-		# TOOD: Does session management mean that when norm==name entries get duplicated?
 		organisations.upsert_alias(norm, org_id, jurisdiction_id)
 	else:
 		org_id = organisations.upsert_organisation(norm, org_type, core)
+		# TODO: Problem creating alias if the organisation is not yet persisted
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
 		organisations.upsert_alias(norm, org_id, jurisdiction_id)
 
@@ -139,7 +138,7 @@ def json2db(data):
 	print("Merging duplicate accounts...")
 	banks.clean_local_accounts()
 	print("Generating views...")
-	db_views.init_derived()
+	db_views.init()
 
 def csv2db(data):
 	"""

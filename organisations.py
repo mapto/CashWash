@@ -1,4 +1,5 @@
-from sqlalchemy import alias, text, select, column
+from sqlalchemy import alias, text, select, column, asc
+import sqlalchemy
 
 from db import Session
 from db import Organisation, Alias, Jurisdiction, Account, Transaction
@@ -6,11 +7,12 @@ from db import Organisation, Alias, Jurisdiction, Account, Transaction
 from dataclean import clean_name
 from util import is_blank 
 
-def upsert_organisation(name, org_type, core):
+def upsert_organisation(name, org_type=None, core=None, fetched=False):
 	"""Includes normalisation
 	Update not implemented
 	"""
 	s = Session()
+	name = clean_name(name)
 	org = _organisation_by_name(s, name)
 	if org:
 		#if name_norm != None and name_norm != org.name_norm:
@@ -26,7 +28,7 @@ def upsert_organisation(name, org_type, core):
 			print("Organisation %s with different core: old: '%s'; new: '%s'"\
 				%(name, org.core, core))
 	else:
-		org = Organisation(name=name, org_type=org_type, core=core)
+		org = Organisation(name=name, org_type=org_type, core=core, fetched=fetched)
 		s.add(org)
 		s.commit()
 	result = org.id
@@ -52,20 +54,47 @@ def merge_organisations(this_id, that_id):
 		print("Organisation %s with different type: old: '%s'; new: '%s'"\
 			%(this.name, this.org_type, that.org_type))
 		success = False
+	else:
+		this.org_type = this.org_type or that.org_type
 	if this.core and that.core and this.core != that.core:
 		print("Organisation %s with different core: old: '%s'; new: '%s'"\
 			%(this.name, this.core, that.core))
 		success = False
+	else:
+		this.core = this.core or that.core
 
 	# accounts, aliases
-	this.aliases = this.aliases + that.aliases
+	#this.aliases = this.aliases + that.aliases
+	this.aliases = _merge_aliases(s, this.aliases, that.aliases)
 	this.accounts = this.accounts + that.accounts
 
 	s.delete(that)
 	s.commit()
 	s.close()
+
 	return success
 
+def _merge_aliases(s, this, that):
+	d = {}
+	for a in this:
+		key = (a.alias, a.country_id)
+		d[key] = a
+	for a in that:
+		key = (a.alias, a.country_id)
+		if key in d:
+			s.delete(a)
+	return this + list(d.values())
+"""
+def _remove_duplicates(s, aliases):
+	d = {}
+	for a in aliases:
+		key = (a.alias, a.country_id, a.org_id)
+		if key in d:
+			s.delete(a)
+		else:
+			d[key] = a
+	return list(d.values())
+"""
 def _get_organisation(s, org_id):
 	return s.query(Organisation).get(org_id)
 '''
@@ -94,7 +123,9 @@ def upsert_alias(name, org_id, jurisdiction_id):
 		s.add(alias)
 
 	company = _get_organisation(s, org_id)
-	assert(company)
+	if not company:
+		# TODO: What do we do with anonymous entities? E.g. cash sources
+		raise Exception("Expected company with id=%d but not found"%org_id)
 	if len(name) < len(company.name):
 		company.name = name
 
@@ -113,7 +144,6 @@ def _get_alias(s, name, org_id, country_id):
 		Alias.alias == name,\
 		Alias.org_id == org_id,\
 		Alias.country_id == country_id).first()
-
 
 def _get_organisation_by_account(s, acc_id):
 	return s.query(Account).get(acc_id).owner_id

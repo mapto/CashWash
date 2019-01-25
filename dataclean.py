@@ -1,12 +1,15 @@
 import string
+# import re
 
 from alias import alias
-import string
 
 from legal_forms import legal_forms
 
 def normalize(name, jurisdiction = None):
 	# remove_punct_dict = dict((ord(punct), None) for punct in string.punctuation)
+	# name = name.strip()
+	name = " ".join(name.split())
+	# name = re.sub(r"\s\s+", " ", name)
 	str_from = string.punctuation + string.ascii_lowercase
 	str_to = ' '*len(string.punctuation) + string.ascii_uppercase
 	translator = str.maketrans(str_from, str_to)
