@@ -1,3 +1,7 @@
+"""Used by datatables"""
+
+from sqlalchemy import text, column, select
+
 def get_accounts_statement(org_id):
 	s = """
 select
@@ -5,7 +9,7 @@ select
 	tb.name bank
 from account ta
 join bank tb on tb.id=ta.bank_id
-where ta.owner_id=%d
+where ta.owner_id=%d and ta.code!=""
 	"""
 	subquery = text(s % org_id).columns()  # This let's it be used as a subquery
 
@@ -17,7 +21,7 @@ select
 	ta.alias alias,
 	tj.code country
 from alias ta
-join jurisdiction tj on tj.id=ta.country_id
+left join jurisdiction tj on tj.id=ta.country_id
 where ta.org_id=%d
 	"""
 	subquery = text(s % org_id).columns()  # This let's it be used as a subquery
@@ -27,8 +31,8 @@ where ta.org_id=%d
 def get_incoming_statement(org_id):
 	s = """
 select
-sum(ttrx.amount_usd) total,
-tsorg.name source
+	sum(ttrx.amount_usd) total,
+	tsorg.name source
 from organisation tdorg
 join account tdacc on tdacc.owner_id=tdorg.id
 join "transaction" ttrx on ttrx.beneficiary_id=tdacc.id
@@ -44,8 +48,8 @@ group by tsorg.id
 def get_outgoing_statement(org_id):
 	s = """
 select
-sum(ttrx.amount_usd) total,
-tdorg.name destination
+	sum(ttrx.amount_usd) total,
+	tdorg.name destination
 from organisation tdorg
 join account tdacc on tdacc.owner_id=tdorg.id
 join "transaction" ttrx on ttrx.beneficiary_id=tdacc.id

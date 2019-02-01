@@ -98,14 +98,28 @@ def query_period():
 
 def query_total_amount():
 	stmt = """
-select sum(inflow) inflow, sum(outflow) outflow
-from intermediary
+select
+sum(tint1.inflow) inflow, sum(tint1.outflow) outflow
+from intermediary tint1
+left outer join intermediary tint2 on tint1.intermediary_org=tint2.source_org and tint1.destination_org = tint2.intermediary_org
+where tint1.intermediary_org != tint1.destination_org and tint2.inflow is null
 	"""
 	s = Session()
 	result = s.execute(stmt).first()
 	s.close()
 	return format_amount(min(result.inflow, result.outflow))
-
+'''
+def query_accounts_count():
+	"""The total number of accounts in the dataset is not considered an indication of laundering"""
+	stmt = """
+select count(tacc.id) from account tacc
+where tacc.acc_type != "UNKNOWN";
+	"""
+	s = Session()
+	result = s.execute(stmt).first()
+	s.close()
+	return int(result.values()[0])
+'''
 def init_summary():
 	result = {"intermediaries": get_intermediaries_count(),\
 		"period": query_period(),\

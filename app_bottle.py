@@ -43,6 +43,15 @@ def get_organisation_by_account(code):
 def get_summary():
 	return static_file("summary.json", root=static_path + "js") # bottle wants root path without trailing slash
 
+# API queries
+@route('/api/bank_codes/<code>', method=['GET'])
+def query_bank_codes(code):
+	return banks.fetch_account_info(code)
+
+@route('/api/open_corporates/<name>', method=['GET'])
+def query_bank_codes(name):
+	return organisations.search_entities(name)
+
 # Datatables
 def _prepare_datatable_parameters(request):
 	draw = request.query['draw']

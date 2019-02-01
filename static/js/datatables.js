@@ -5,3 +5,13 @@ function renderOrgAndAcc(data, type, row, settings) {
 	  '<span class="org">' + data + '</span>' +
 	  '<br/><span class="acc">' + acc + '</span></a>';
 }
+
+function renderFetchableAcc(data, type, row, settings) {
+	return '<button class="btn btn-primary btn-sm" data-name="' + data + '" onclick="fetchData(\'' + data + '\', \'bank_codes\')">' +
+		'<i class="fas fa-download"></i></button> ' + data;
+}
+
+function renderFetchableName(data, type, row, settings) {
+	return '<button class="btn btn-primary btn-sm" data-name="' + data + '" onclick="fetchData(\'' + data + '\', \'open_corporates\')">' +
+		'<i class="fas fa-download"></i></button> ' + data;
+}

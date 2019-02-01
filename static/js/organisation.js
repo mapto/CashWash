@@ -18,17 +18,23 @@ $(document).ready(function() {
 
 function loadOrganisation(id) {
     var table = $('#aliases').DataTable( {
+        ajax: "../datatables/aliases/" + id,
         //"processing": true,
-        serverSide: true,
-        stateSave: true,
+        columnDefs: [
+            {targets: [0], render: renderFetchableName}
+        ],
         info: false,
         paging: false,
-        searching: false,
-        ajax: "../datatables/aliases/" + id
+        serverSide: true,
+        stateSave: true,
+        searching: false
     });
 
     var table = $('#accounts').DataTable( {
         ajax: "../datatables/accounts/" + id,
+        columnDefs: [
+            {targets: [0], render: renderFetchableAcc}
+        ],
         info: false,
         serverSide: true,
         stateSave: true,

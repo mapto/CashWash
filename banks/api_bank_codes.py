@@ -58,13 +58,7 @@ def _get_account_info(code):
 		raise PermissionError("Daily limit reached")
 	return get_json_cached(query_path, urls[acc_type] + code)
 
-def get_cached_accounts():
-	from glob import glob
-	files = glob(bank_codes_path + "*.json")
-	prefix_len = len(bank_codes_path)
-	return [path[prefix_len:-5] for path in files]
-
-def get_account_country(code):
+def fetch_account_info(code):
 	try:
 		data = _get_account_info(code)
 	except (PermissionError, ConnectionError) as err:
@@ -79,6 +73,16 @@ def get_account_country(code):
 	if not valid:
 		print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
+	return data
+
+def get_cached_accounts():
+	from glob import glob
+	files = glob(bank_codes_path + "*.json")
+	prefix_len = len(bank_codes_path)
+	return [path[prefix_len:-5] for path in files]
+
+def get_account_country(code):
+	data = fetch_account_info(code)
 
 	if "countrycode" not in data:
 		print(data)
@@ -86,20 +90,7 @@ def get_account_country(code):
 	return data["countrycode"]
 
 def get_account_bank_name(code):
-	try:
-		data = _get_account_info(code)
-	except (PermissionError, ConnectionError) as err:
-		if debug: print(err)
-		return None
-
-	valid = False
-	if data and ("result" in data):
-		valid = data["result"]["validation"]["iban_validity"] == "Valid"
-		data = data["result"]["data"]
-	valid = valid or (("valid" in data) and data["valid"])
-	if not valid:
-		print("Invalid code: %s" % code)
-		raise LookupError(json.dumps(data))
+	data = fetch_account_info(code)
 
 	if not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
 		print(data)
@@ -115,20 +106,7 @@ def get_account_bank_name(code):
 	return None
 
 def get_account_bank_code(code):
-	try:
-		data = _get_account_info(code)
-	except (PermissionError, ConnectionError) as err:
-		if debug: print(err)
-		return None
-
-	valid = False
-	if data and ("result" in data):
-		valid = data["result"]["validation"]["iban_validity"] == "Valid"
-		data = data["result"]["data"]
-	valid = valid or (("valid" in data) and data["valid"])
-	if not valid:
-		print("Invalid code: %s" % code)
-		raise LookupError(json.dumps(data))
+	data = fetch_account_info(code)
 
 	if not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
 		print(data)

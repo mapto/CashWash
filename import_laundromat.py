@@ -138,7 +138,11 @@ def json2db(data):
 	print("Merging duplicate accounts...")
 	banks.clean_local_accounts()
 	print("Generating views...")
+	start = datetime.now()
 	db_views.init()
+	end = datetime.now()
+	elapsed = (end-start).total_seconds()
+	print("Views generated in %f secs." % elapsed)
 
 def csv2db(data):
 	"""

@@ -119,18 +119,32 @@ def _build_search_file(term, domain="companies", jurisdiction=None):
 	composed = domain + "." + jurisdiction.lower() if jurisdiction else domain
 	return search_file % (composed, term)
 
-def search_entities(term, domain="companies", jurisdiction=None):
+def search_entities(term, domain=None, jurisdiction=None):
 	if jurisdiction in missing_jurisdictions:
 		raise KeyError("Jurisdiction %s not present in OC"%jurisdiction)
+	if not domain:
+		result = {"api_version": "0.4", "results": {"page": 1, "per_page": 100, "total_pages": 1, "total_count": 0}}
+		for domain in searchable_entitites:
+			answer = search_entities(term, domain, jurisdiction)
+			result["results"][domain] = answer["results"][domain]
+			result["results"]["total_count"] += answer["results"]["total_count"]
+		return result
 
 	# query_path = base_url + "companies" + "/" + (search_url % term) + "&" + token_var
 	query_url = _build_search_url(term, domain, jurisdiction)
 	query_path = oc_path + _build_search_file(term, domain, jurisdiction)
 	return _perform_search(query_path, query_url)
 
-def search_statements(term, domain="control_statements", jurisdiction=None):
+def search_statements(term, domain=None, jurisdiction=None):
 	if jurisdiction in missing_jurisdictions:
 		raise KeyError("Jurisdiction %s not present in OC"%jurisdiction)
+	if not domain:
+		result = {"api_version": "0.4", "results": {"page": 1, "per_page": 100, "total_pages": 1, "total_count": 0}}
+		for domain in searchable_statements:
+			answer = search_statements(term, domain, jurisdiction)
+			result["results"][domain] = answer["results"][domain]
+			result["results"]["total_count"] += answer["results"]["total_count"]
+		return result
 
 	# query_path = base_url + "statements" + "/" + "gazette_notices" + "/" + (search_url % term) + "&" + token_var
 	query_url = _build_search_url(term, "statements/" + domain, jurisdiction)
@@ -144,8 +158,6 @@ if __name__ == '__main__':
 	#print(search_entities("EUROTRADE INTERNATIONAL HOLDING", jurisdiction="us"))
 	#print(search_entities("DENISON", "BZ"))
 	print(search_statements("RIVERLANE", jurisdiction="gb"))
-	for domain in searchable_entitites:
-		print(search_entities("EUROTRADE INTERNATIONAL", domain, jurisdiction="us"))
-	for domain in searchable_statements:
-		print(search_statements("EUROTRADE INTERNATIONAL", domain, jurisdiction="us"))
+	print(search_entities("EUROTRADE INTERNATIONAL", jurisdiction="us"))
+	print(search_statements("EUROTRADE INTERNATIONAL", jurisdiction="us"))
 

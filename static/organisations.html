@@ -4,9 +4,9 @@
 <head>
 	<meta charset="utf-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no" />
-	<link rel="icon" type="image/png" href="images/favicon.png">
+	<!--<link rel="icon" type="image/png" href="images/favicon.png">-->
 
-	<title>CashWash - Intermediaries</title>
+	<title>CashWash - Organisations</title>
 
 	<meta name="description" content="CashWash: Transactions">
 	<meta name="author" content="github.com/mapto">
@@ -31,14 +31,37 @@
 </head>
 
 <body>
-	<header></header>
+	<nav class="navbar navbar-expand-lg navbar-light bg-light">
+	  <a class="navbar-brand" href="#">CashWash</a>
+	  <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+	    <span class="navbar-toggler-icon"></span>
+	  </button>
+
+	  <div class="collapse navbar-collapse" id="navbarSupportedContent">
+	    <ul class="navbar-nav mr-auto">
+	      <li class="nav-item active">
+	        <a class="nav-link" href="#">Home</a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link" href="transactions.html">Transactions</a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link" href="organisations.html">Organisations</a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Banks</a>
+	      </li>
+	      <li class="nav-item">
+	        <a class="nav-link disabled" href="#" tabindex="-1" aria-disabled="true">Countries</a>
+	      </li>
+	    </ul>
+	  </div>
+	</nav>
 
 	<div class="container-fluid">
-		<h1 id="orgName"></h1>
 		<div class="row">
-			<div class="col-6">
-				<h2>Names</h2>
-				<table id="aliases">
+			<div class="col-2">
+				<table id="alias">
 		        <thead>
 		            <tr>
 		                <th>Alias</th>
@@ -47,37 +70,28 @@
 		        </thead>
 				</table>
 			</div>
-			<div class="col-6">
-				<h2>Accounts</h2>
-				<table id="accounts">
-		        <thead>
-		            <tr>
-		                <th>Account</th>
-		                <th>Bank</th>
-		            </tr>
-		        </thead>
-				</table>
-			</div>
-		</div>
-		<div class="row">
-			<div class="col-6">
-				<h2>Incoming Transactions</h2>
+			<div class="col-5">
 				<table id="incoming">
 		        <thead>
 		            <tr>
-		                <th>Transferred (USD)</th>
-		                <th>Source</th>
+		                <th>Amount (USD)</th>
+		                <th>From</th>
+		                <th>To</th>
+		                <th>Currency</th>
+		                <th>Date</th>
 		            </tr>
 		        </thead>
 				</table>
 			</div>
-			<div class="col-6">
-				<h2>Outgoing Transactions</h2>
+			<div class="col-5">
 				<table id="outgoing">
 		        <thead>
 		            <tr>
-		                <th>Transferred (USD)</th>
-		                <th>Destination</th>
+		                <th>Amount (USD)</th>
+		                <th>From</th>
+		                <th>To</th>
+		                <th>Currency</th>
+		                <th>Date</th>
 		            </tr>
 		        </thead>
 				</table>
@@ -91,9 +105,6 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.6/umd/popper.min.js" integrity="sha384-wHAiFfRlMFy6i5SRaxvfOCifBUQy1xHdJ/yoi7FRNXMRBu5WHdZYu1hA6ZOblgut" crossorigin="anonymous"></script>
 	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.2.1/js/bootstrap.min.js" integrity="sha384-B0UglyR+jN6CkvvICOB2joaf5I4l3gm9GU6Hc1og6Ls7i6U/mkkaduKaBhlAXv9k" crossorigin="anonymous"></script>
 
-	<script src="js/api.js"></script>
-	<script src="js/datatables.js"></script>
-	<script src="js/organisation.js"></script>
-	<script src="js/menu.js"></script>
+	<script src="js/organisations.js"></script>
 </body>
 </html>

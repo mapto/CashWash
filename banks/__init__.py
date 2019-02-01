@@ -6,7 +6,7 @@ from settings import debug
 
 from .util import account_type
 
-from .api_bank_codes import get_account_bank_code, get_account_bank_name, get_account_country
+from .api_bank_codes import fetch_account_info, get_account_bank_code, get_account_bank_name, get_account_country
 from .api_bank_codes import account_bank_code
 
 from .statements import get_intermediaries_statement, get_transactions_statement
