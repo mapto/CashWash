@@ -8,8 +8,7 @@ from datetime import datetime
 import json
 
 from private import oc_api_key as api_key
-from settings import data_path
-from settings import dateformat_log
+from settings import data_path, dateformat_log
 
 import api_util as util
 

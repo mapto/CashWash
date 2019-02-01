@@ -15,4 +15,4 @@ from .persistence import query_organisation_by_account, get_account_by_code, get
 from .persistence import upsert_bank, upsert_account, insert_transaction, clean_local_accounts
 
 #from .banks import query_period, query_total_amount
-from .banks import preload_cached_accounts
+from .service import preload_cached_accounts
