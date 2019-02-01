@@ -4,6 +4,7 @@ from db import Session
 
 from organisations import merge_organisations
 
+from util import is_blank
 
 def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 	"""Atomic operation
@@ -48,6 +49,8 @@ def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 	return result
 
 def upsert_bank(jurisdiction_id, bank_code=None, name=None, fetched=False):
+	if is_blank(name):
+		name = None
 	s = Session()
 	bank = _get_bank(s, jurisdiction_id, bank_code)
 	if not bank:

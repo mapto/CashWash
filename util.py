@@ -1,6 +1,10 @@
 import re
+import json
+
+from confusable_homoglyphs.confusables import is_confusable
 
 from settings import precision_digits
+from settings import debug
 
 blanks = ["NONE", "NULL", "UNKNOWN"]
 
@@ -39,3 +43,16 @@ def parse_amount(s):
 def format_amount(d):
 	return ("%." + str(precision_digits) + "f")%(float(d) / (10 ** precision_digits))
 
+def clean_confusables(s):
+	confusions = is_confusable(s, greedy=True, preferred_aliases=["latin"])
+	result = s
+	#print(confusions)
+	if not confusions:
+		return s
+	for next in confusions:
+		found = next['character']
+		if len(next['homoglyphs']) > 1:
+			print("In %s found %s"%(s,json.dumps(next)))
+		generic = next['homoglyphs'][0]['c']
+		result = result.replace(found, generic)
+	return result

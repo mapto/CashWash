@@ -23,7 +23,7 @@ laundromat_csv_url = 'https://public.data.occrp.org/open/Combined%20Laundromats%
 laundromat_csv = data_path + "laundromat.csv"
 
 def read_role(row, role):
-	country = row[role + "_jurisdiction"].strip()
+	country = util.clean_confusables(row[role + "_jurisdiction"].strip())
 	if len(country) != 2:
 		if not util.is_blank(country):
 			print("Country %s is not ISO-639-1 code" % country)
@@ -38,7 +38,7 @@ def read_role(row, role):
 	code = str(row[role + "_account"])
 	code = re.sub(r"\s" , "", code).lstrip("0")
 	acc_type = banks.account_type(code)
-	acc_country = row[role + "_bank_country"]
+	acc_country = util.clean_confusables(row[role + "_bank_country"])
 
 	bank_name = dataclean.clean_name(row[role + "_bank"], acc_country)
 	bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None

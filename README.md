@@ -13,6 +13,6 @@ No data from any of these data sources is published here. The platform allows yo
 
 To install dependencies run:
 
-    pip3 install flask sqlalchemy requests pyquery
+    pip3 install flask sqlalchemy requests pyquery confusable_homoglyphs
     
     
