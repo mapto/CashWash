@@ -25,7 +25,7 @@ urls = {"IBAN": iban_url, "SWIFT": swift_url}
 datestamp = datetime.now().strftime(dateformat_log[:6])
 
 #query_limit = 50
-query_limit = 20
+query_limit = 19
 counter_path = "%scounter.%s.txt" % (bank_codes_path, datestamp)
 query_counter = False
 
@@ -101,7 +101,7 @@ def get_account_bank_name(code):
 		print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
 
-	if not {"bic", "bank", "bank_code"}.intersection(data):
+	if not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
 		print(data)
 
 	if "bank" in data:
@@ -110,6 +110,8 @@ def get_account_bank_name(code):
 		return data["bank_code"]
 	if "bic" in data:
 		return data["bic"]
+	if "bank_branch_code" in data:
+		return data["bank_branch_code"]
 	return None
 
 def get_account_bank_code(code):
@@ -128,7 +130,7 @@ def get_account_bank_code(code):
 		print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
 
-	if not {"bic", "bank", "bank_code"}.intersection(data):
+	if not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
 		print(data)
 
 	if "bic" in data:
@@ -137,6 +139,8 @@ def get_account_bank_code(code):
 		return data["bank_code"]
 	if "bank" in data:
 		return data["bank"]
+	if "bank_branch_code" in data:
+		return data["bank_branch_code"]
 	return None
 
 def account_bank_code(code):
