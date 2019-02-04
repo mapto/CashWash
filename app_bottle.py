@@ -38,20 +38,6 @@ def mistake504(code):
 def get_organisation_by_account(code):
 	return banks.query_organisation_by_account(code)
 
-# Summary
-@route('/summary', method=['GET'])
-def get_summary():
-	return static_file("summary.json", root=static_path + "js") # bottle wants root path without trailing slash
-
-# API queries
-@route('/api/bank_codes/<code>', method=['GET'])
-def query_bank_codes(code):
-	return banks.fetch_account_info(code)
-
-@route('/api/open_corporates/<name>', method=['GET'])
-def query_bank_codes(name):
-	return organisations.search_entities(name)
-
 # Datatables
 def _prepare_datatable_parameters(request):
 	draw = request.query['draw']
@@ -71,6 +57,21 @@ def _prepare_datatable_parameters(request):
 	
 	return (draw, start, length, order)	
 
+# Summary
+@route('/summary', method=['GET'])
+def get_summary():
+	return static_file("summary.json", root=static_path + "js") # bottle wants root path without trailing slash
+
+# API queries
+@route('/api/bank_codes/<code>', method=['GET'])
+def query_bank_codes(code):
+	return banks.fetch_account_info(code)
+
+@route('/api/open_corporates/<name>', method=['GET'])
+def query_open_corporates(name):
+	return organisations.search_entities(name)
+
+# Datatables
 @route('/datatables/transactions', method=['GET'])
 def get_datatable_transactions():
 	params = _prepare_datatable_parameters(request)
@@ -82,6 +83,12 @@ def get_datatable_transactions():
 def get_datatable_intermediaries():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_intermediaries(*params)
+	return response
+
+@route('/datatables/cashflows', method=['GET'])
+def get_datatable_cashflows():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_cashflows(*params)
 	return response
 
 
@@ -123,6 +130,7 @@ def get_datatable_outgoing(org_id):
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_outgoing(int(org_id), *params)
 	return response
+
 
 # Static resources
 @route('/<resource_type:re:(js|css|images)>/<filename:re:.*\.(js|css|png)>')

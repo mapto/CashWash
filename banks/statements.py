@@ -30,10 +30,23 @@ def get_intermediaries_statement():
 	s = """
 select
 	inflow, outflow, balance,
+	intermediary_org, intermediary_acc
+from intermediary
+	"""
+	subquery = text(s).columns()
+
+	return select([column("inflow"),column("outflow"),column("balance"),\
+		column("intermediary_org"), column("intermediary_acc")])\
+		.select_from(subquery)
+
+def get_cashflows_statement():
+	s = """
+select
+	inflow, outflow, balance,
 	source_org, source_acc,
 	intermediary_org, intermediary_acc,
 	destination_org, destination_acc
-from intermediary
+from cashflow
 	"""
 	subquery = text(s).columns()
 

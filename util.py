@@ -29,7 +29,7 @@ def csv2list(filename):
 		lines = f.read().splitlines()
 
 def is_blank(s):
-	return not s or s.upper() in blanks
+	return not s or not s.strip() or s.strip().upper() in blanks
 
 def parse_amount(s):
 	try:

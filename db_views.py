@@ -20,24 +20,56 @@ CREATE TABLE intermediary(
   inflow  INTEGER,
   outflow INTEGER,
   balance INTEGER,
+  intermediary_id  INTEGER,
+  intermediary_org VARCHAR,
+  intermediary_acc VARCHAR
+)
+"""
+# table
+
+populate_table_intermediary = """
+insert into intermediary 
+select
+	sum(tcf.inflow) inflow,
+	sum(tcf.outflow) outflow,
+	sum(tcf.balance) balance,
+	tcf.intermediary_id, tcf.intermediary_org, tcf.intermediary_acc
+from cashflow tcf
+left outer JOIN cashflow tsrc on tsrc.intermediary_id=tcf.source_id and tsrc.intermediary_id is NULL
+left outer JOIN cashflow tdest on tdest.intermediary_id=tcf.destination_id and tdest.intermediary_id is NULL
+GROUP BY tcf.intermediary_id
+"""
+
+drop_table_cashflow ="""
+drop table if exists cashflow
+"""
+
+# in- and out-flows of intermediaries
+create_table_cashflow ="""
+CREATE TABLE cashflow(
+  inflow  INTEGER,
+  outflow INTEGER,
+  balance INTEGER,
+  source_id        INTEGER,
   source_org       VARCHAR,
   source_acc       VARCHAR,
+  intermediary_id  INTEGER,
   intermediary_org VARCHAR,
   intermediary_acc VARCHAR,
+  destination_id   INTEGER,
   destination_org  VARCHAR,
   destination_acc  VARCHAR
 )
 """
-# table
-populate_table_intermediary = """
-insert into intermediary 
+populate_table_cashflow = """
+insert into cashflow 
 select
 	sum(tf.amount_usd) inflow,
 	sum(tt.amount_usd) outflow,
 	sum(tf.amount_usd) - sum(tt.amount_usd) balance,
-	tso.name source_org,       tsa.code source_acc,       
-	tio.name intermediary_org, tia.code intermediary_acc,
-	tdo.name destination_org,  tda.code destination_acc  
+	tso.id source_id,       tso.name source_org,       tsa.code source_acc,       
+	tio.id intermediary_id, tio.name intermediary_org, tia.code intermediary_acc,
+	tdo.id destination_id,  tdo.name destination_org,  tda.code destination_acc  
 from "transaction" tf
 JOIN "transaction" tt ON tf.beneficiary_id=tt.payee_id
 JOIN account tsa      ON tsa.id=tf.payee_id
@@ -46,7 +78,7 @@ JOIN account tia      ON tia.id=tt.payee_id AND tia.id IS NOT NULL AND tia.code 
 JOIN organisation tio ON tio.id=tia.owner_id
 JOIN account tda      ON tda.id=tt.beneficiary_id
 JOIN organisation tdo ON tdo.id=tda.owner_id
-GROUP BY intermediary_org
+GROUP BY source_org, intermediary_org, destination_org
 """
 # view - legacy - structure needs to be updated in accordance to table version
 '''
@@ -80,6 +112,14 @@ def init_intermediary_table():
 	s.commit()
 	s.close()
 
+def init_cashflow_table():
+	s = Session()
+	s.execute(drop_table_cashflow)
+	s.execute(create_table_cashflow)
+	s.execute(populate_table_cashflow)
+	s.commit()
+	s.close()
+
 def get_intermediaries_count():
 	stmt = """
 select count(intermediary_org) from intermediary
@@ -99,10 +139,8 @@ def query_period():
 def query_total_amount():
 	stmt = """
 select
-sum(tint1.inflow) inflow, sum(tint1.outflow) outflow
-from intermediary tint1
-left outer join intermediary tint2 on tint1.intermediary_org=tint2.source_org and tint1.destination_org = tint2.intermediary_org
-where tint1.intermediary_org != tint1.destination_org and tint2.inflow is null
+sum(tint.inflow) inflow, sum(tint.outflow) outflow
+from intermediary tint
 	"""
 	s = Session()
 	result = s.execute(stmt).first()
@@ -128,6 +166,7 @@ def init_summary():
 		json.dump(result, fjson)
 
 def init_derived():
+	init_cashflow_table()
 	init_intermediary_table()
 
 def init():

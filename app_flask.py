@@ -16,10 +16,12 @@ import datatables
 
 app = Flask(__name__, static_url_path="")
 
+# Object requests
 @app.route('/owner/<code>', methods=['GET'])
 def get_organisation_by_account(code):
 	return jsonify(banks.query_organisation_by_account(code))
 
+# Datatables
 def _prepare_datatable_parameters(request):
 	draw = request.args.get('draw')
 	start = request.args.get('start')
@@ -43,6 +45,15 @@ def _prepare_datatable_parameters(request):
 def get_summary():
 	return send_from_directory(static_path + "js", "summary.json")
 
+# API queries
+@app.route('/api/bank_codes/<code>', methods=['GET'])
+def query_bank_codes(code):
+	return jsonify(banks.fetch_account_info(code))
+
+@app.route('/api/open_corporates/<name>', methods=['GET'])
+def query_open_corporates(name):
+	return jsonify(organisations.search_entities(name))
+
 # Datatables
 @app.route('/datatables/transactions', methods=['GET'])
 def get_datatable_transactions():
@@ -55,6 +66,12 @@ def get_datatable_transactions():
 def get_datatable_intermediaries():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_intermediaries(*params)
+	return jsonify(response)
+
+@app.route('/datatables/cashflows', methods=['GET'])
+def get_datatable_cashflows():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_cashflows(*params)
 	return jsonify(response)
 
 
@@ -98,7 +115,7 @@ def get_datatable_outgoing(org_id):
 	return jsonify(response)
 
 
-# Serve static content
+# Static resources
 class RegexConverter(BaseConverter):
     def __init__(self, url_map, *items):
         super(RegexConverter, self).__init__(url_map)
@@ -106,7 +123,7 @@ class RegexConverter(BaseConverter):
 
 app.url_map.converters['regex'] = RegexConverter
 
-@app.route('/<regex("js|css|images|fonts"):resource_type>/<path:path>')
+@app.route('/<regex("js|css|images"):resource_type>/<path:path>')
 def send_resource(resource_type, path):
 	return send_from_directory(static_path + resource_type, path)
 
@@ -117,3 +134,4 @@ def root():
 
 if __name__ == '__main__':
     app.run(host, port, debug)
+

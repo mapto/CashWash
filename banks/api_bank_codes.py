@@ -68,7 +68,8 @@ def fetch_account_info(code):
 	valid = False
 	if data and ("result" in data):
 		valid = data["result"]["validation"]["iban_validity"] == "Valid"
-		data = data["result"]["data"]
+		if valid:
+			data = data["result"]["data"]
 	valid = valid or (("valid" in data) and (data["valid"].upper() == "TRUE"))
 	if not valid:
 		print("Invalid code: %s" % code)

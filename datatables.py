@@ -63,6 +63,20 @@ def get_datatable_intermediaries(draw, start=0, length=25, order=None):
 		"recordsTotal": total_records, "recordsFiltered": total_records,\
 		"data": [[\
 			format_amount(t.inflow), format_amount(t.outflow), format_amount(t.balance),\
+			t.intermediary_org, t.intermediary_acc]\
+			for t in _get_page(q, page, length, order)]}
+	return response
+
+def get_datatable_cashflows(draw, start=0, length=25, order=None):
+	page = start/length if start and length else 0
+
+	q = banks.get_cashflows_statement()
+	total_records = _total_records(q)
+
+	response = {"draw": draw, "length": length, "start": start, \
+		"recordsTotal": total_records, "recordsFiltered": total_records,\
+		"data": [[\
+			format_amount(t.inflow), format_amount(t.outflow), format_amount(t.balance),\
 			t.source_org, t.source_acc,\
 			t.intermediary_org, t.intermediary_acc,\
 			t.destination_org, t.destination_acc]\
