@@ -6,7 +6,7 @@ from db import Organisation, Alias, Jurisdiction, Account, Transaction
 from db import Session
 
 from dataclean import clean_name
-# from util import is_blank 
+from util import is_blank 
 
 def upsert_organisation(name, org_type=None, core=None, fetched=False):
 	"""Includes normalisation
@@ -48,7 +48,7 @@ def merge_organisations(this_id, that_id):
 		return False
 
 	# name, org_type, core
-	if len(that.name) < len(this.name):
+	if not is_blank(that.name) and len(that.name) < len(this.name):
 		this.name = that.name
 
 	if this.org_type and that.org_type and this.org_type != that.org_type:
@@ -116,7 +116,7 @@ def upsert_alias(name, org_id, jurisdiction_id):
 	"""
 	s = Session()
 	name = clean_name(name)
-	if not name or not org_id:
+	if is_blank(name) or not org_id:
 		return None
 	alias = _get_alias(s, name, org_id, jurisdiction_id)
 	if not alias:

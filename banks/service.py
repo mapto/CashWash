@@ -25,11 +25,16 @@ def account_from_iban(code, fetched=False):
 	country_code = code[0:2]
 	jurisdiction_id = jurisdiction_by_code(country_code)
 
-	acc_type = account_type(code)
-	bank_code = account_bank_code(code)
-	b = upsert_bank(bank_code=bank_code, jurisdiction_id=jurisdiction_id, fetched=fetched)
+	try:
+		acc_type = account_type(code)
+		bank_code = account_bank_code(code)
+		b = upsert_bank(bank_code=bank_code, jurisdiction_id=jurisdiction_id, fetched=fetched)
+		acc_id = upsert_account(code, acc_type, b)
+	except LookupError as e:
+		print(e)
+		acc_id = None
 
-	return upsert_account(code, acc_type, b)
+	return acc_id
 
 # Batch-related services
 

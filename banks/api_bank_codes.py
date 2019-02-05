@@ -85,16 +85,20 @@ def get_cached_accounts():
 def get_account_country(code):
 	data = fetch_account_info(code)
 
-	if "countrycode" not in data:
+	if not data or "countrycode" not in data:
 		print(data)
+		return None
 
 	return data["countrycode"]
 
 def get_account_bank_name(code):
 	data = fetch_account_info(code)
-
-	if not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
+	
+	if not data:
+		return None
+	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
 		print(data)
+		return None
 
 	if "bank" in data:
 		return data["bank"]
@@ -108,9 +112,10 @@ def get_account_bank_name(code):
 
 def get_account_bank_code(code):
 	data = fetch_account_info(code)
-
-	if not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
+	
+	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
 		print(data)
+		return None
 
 	if "bic" in data:
 		return data["bic"]
