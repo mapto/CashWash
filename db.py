@@ -62,7 +62,7 @@ class Organisation(Base):
 	# account = Column(String)
 	# jurisdiction = Column(String)
 	# bank_country = Column(String) # automatically extracted, TBV
-	org_type = Column(String) # Company, Person, Invalid
+	# org_type = Column(String) # Company, Person, Invalid
 	core = Column(Boolean)
 	fetched = Column(Boolean, default=False)
 	

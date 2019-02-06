@@ -1,4 +1,4 @@
-# __all__ = []
+# __all__ = ['statements', 'persistence', 'service']
 
 from settings import data_path, dateformat_log
 from settings import debug
@@ -6,6 +6,7 @@ from settings import debug
 from .api_open_corporates import search_entities, search_statements
 from .api_open_corporates import searchable_entitites, searchable_statements
 
+from .statements import get_organisations_statement
 from .statements import get_accounts_statement, get_aliases_statement
 from .statements import get_incoming_statement, get_outgoing_statement
 

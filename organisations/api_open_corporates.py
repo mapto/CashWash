@@ -109,8 +109,10 @@ def search_statements(term, domain=None, jurisdiction=None):
 		result = {"api_version": "0.4", "results": {"page": 1, "per_page": 100, "total_pages": 1, "total_count": 0}}
 		for domain in searchable_statements:
 			answer = search_statements(term, domain, jurisdiction)
-			result["results"][domain] = answer["results"][domain]
-			result["results"]["total_count"] += answer["results"]["total_count"]
+			found_count = answer["results"]["total_count"]
+			if found_count:
+				result["results"][domain] = answer["results"]["statements"]
+				result["results"]["total_count"] += found_count
 		return result
 
 	# query_path = base_url + "statements" + "/" + "gazette_notices" + "/" + (search_url % term) + "&" + token_var

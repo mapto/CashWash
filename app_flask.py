@@ -8,7 +8,8 @@ from flask import send_from_directory
 from flask import request
 
 from settings import host, port, static_path
-from settings import debug
+# from settings import debug
+debug = True
 
 import banks, organisations
 
@@ -51,8 +52,9 @@ def query_bank_codes(code):
 	return jsonify(banks.fetch_account_info(code))
 
 @app.route('/api/open_corporates/<name>', methods=['GET'])
-def query_open_corporates(name):
-	return jsonify(organisations.search_entities(name))
+@app.route('/api/open_corporates/<name>/<jurisdiction>', methods=['GET'])
+def query_open_corporates(name, jurisdiction=None):
+	return jsonify(organisations.search_entities(name, jurisdiction=jurisdiction))
 
 # Datatables
 @app.route('/datatables/transactions', methods=['GET'])
@@ -61,6 +63,11 @@ def get_datatable_transactions():
 	response = datatables.get_datatable_transactions(*params)	
 	return jsonify(response)
 
+@app.route('/datatables/organisations', methods=['GET'])
+def get_datatable_organisations():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_organisations(*params)	
+	return jsonify(response)
 
 @app.route('/datatables/intermediaries', methods=['GET'])
 def get_datatable_intermediaries():

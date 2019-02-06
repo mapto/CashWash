@@ -29,20 +29,20 @@ join organisation tbo on tbo.id=tba.owner_id
 def get_intermediaries_statement():
 	s = """
 select
-	inflow, outflow, balance,
+	inflow, outflow,
 	intermediary_org, intermediary_acc
 from intermediary
 	"""
 	subquery = text(s).columns()
 
-	return select([column("inflow"),column("outflow"),column("balance"),\
+	return select([column("inflow"),column("outflow"),\
 		column("intermediary_org"), column("intermediary_acc")])\
 		.select_from(subquery)
 
 def get_cashflows_statement():
 	s = """
 select
-	inflow, outflow, balance,
+	inflow, outflow,
 	source_org, source_acc,
 	intermediary_org, intermediary_acc,
 	destination_org, destination_acc
@@ -50,7 +50,7 @@ from cashflow
 	"""
 	subquery = text(s).columns()
 
-	return select([column("inflow"),column("outflow"),column("balance"),\
+	return select([column("inflow"),column("outflow"),\
 		column("source_org"), column("source_acc"),\
 		column("intermediary_org"), column("intermediary_acc"),\
 		column("destination_org"), column("destination_acc")])\

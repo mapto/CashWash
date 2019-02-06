@@ -68,8 +68,9 @@ def query_bank_codes(code):
 	return banks.fetch_account_info(code)
 
 @route('/api/open_corporates/<name>', method=['GET'])
-def query_open_corporates(name):
-	return organisations.search_entities(name)
+@route('/api/open_corporates/<name>/<jurisdiction>', method=['GET'])
+def query_open_corporates(name, jurisdiction=None):
+	return organisations.search_entities(name, jurisdiction=jurisdiction)
 
 # Datatables
 @route('/datatables/transactions', method=['GET'])
@@ -78,6 +79,11 @@ def get_datatable_transactions():
 	response = datatables.get_datatable_transactions(*params)	
 	return response
 
+@route('/datatables/organisations', method=['GET'])
+def get_datatable_organisations():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_organisations(*params)	
+	return response
 
 @route('/datatables/intermediaries', method=['GET'])
 def get_datatable_intermediaries():

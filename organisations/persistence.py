@@ -179,6 +179,7 @@ def update_org_name(org_id, name):
 	s = Session()
 	org = s.query(Organisation).get(org_id)
 	org.name = name
+	org.fetched = True # if renamed, means that name is checked
 	s.close()
 	return name
 

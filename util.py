@@ -4,9 +4,16 @@ import json
 from confusable_homoglyphs.confusables import is_confusable
 
 from settings import precision_digits
+precision_format_string = "%." + str(precision_digits) + "f"
 from settings import debug
 
 blanks = ["NONE", "NULL", "UNKNOWN"]
+
+def diff(inflow, outflow):
+	"Safely calculate difference, handling null arriving from DB"
+	outflow = outflow or 0
+	inflow = inflow or 0
+	return inflow - outflow
 
 def list2csv(l, filename):
 	with open(filename, 'w') as f:
@@ -41,7 +48,9 @@ def parse_amount(s):
 	return int(float(v) * (10 ** precision_digits))
 
 def format_amount(d):
-	return ("%." + str(precision_digits) + "f")%(float(d) / (10 ** precision_digits))
+	if not d:
+		return "0." + "0" * precision_digits
+	return precision_format_string % (float(d) / (10 ** precision_digits))
 
 def clean_confusables(s):
 	confusions = is_confusable(s, greedy=True, preferred_aliases=["latin"])

@@ -16,6 +16,20 @@ where ta.owner_id=%d and ta.code!=""
 
 	return select([column("code"),column("bank")]).select_from(subquery)
 
+def get_organisations_statement():
+	s = """
+select
+	torg.id, torg.name,
+	sum(tin.amount_usd) inflow,
+	sum(tout.amount_usd) outflow
+from organisation torg
+left outer join "transaction" tin on tin.beneficiary_id=torg.id
+left outer join "transaction" tout on tout.payee_id=torg.id
+group by torg.id
+	"""
+	subquery = text(s).columns()
+	return select([column("id"), column("name"), column("inflow"), column("outflow")]).select_from(subquery)
+
 def get_aliases_statement(org_id):
 	s = """
 select
