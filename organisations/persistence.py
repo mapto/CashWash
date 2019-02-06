@@ -8,6 +8,11 @@ from db import Session
 from dataclean import clean_name
 from util import is_blank 
 
+from jurisdictions import jurisdiction_by_code
+
+from .statements import get_all_simple_aliases_statement, get_all_aliases_by_one_statement
+
+
 def upsert_organisation(name, org_type=None, core=None, fetched=False):
 	"""Includes normalisation
 	Update not implemented
@@ -127,8 +132,10 @@ def upsert_alias(name, org_id, jurisdiction_id):
 	if not company:
 		# TODO: What do we do with anonymous entities? E.g. cash sources
 		raise Exception("Expected company with id=%d but not found"%org_id)
-	if len(name) < len(company.name):
-		company.name = name
+
+	# Out because names are processed after import is complete
+	# if len(name) < len(company.name):
+	# 	company.name = name
 
 	s.commit()
 	result = alias.id
@@ -146,12 +153,44 @@ def _get_alias(s, name, org_id, country_id):
 		Alias.org_id == org_id,\
 		Alias.country_id == country_id).first()
 
+def _get_aliases(s, org_id):
+	return s.query(Alias).filter(Alias.org_id==org_id).all()
+
 def _get_organisation_by_account(s, acc_id):
 	return s.query(Account).get(acc_id).owner_id
 
 def get_organisation_by_account(acc_id):
 	s = Session()
 	result = _get_organisation_by_account(s, acc_id)
-	s.close
+	s.close()
+	return result
+
+def _get_organisations_and_aliases(s):
+	return s.query(Organisation).join(Alias, Alias.org_id==Organisation.id).filter(Alias.jurisdiction != None).all()
+
+def get_organisations_and_aliases():
+	s = Session()
+	result = [{"organisation": org.name, "alias": alias.alias, "jurisdiction": alias.jurisdiction.code}\
+		for org in _get_organisations_and_aliases(s)]
+	s.close()
+	return result
+
+def update_org_name(org_id, name):
+	s = Session()
+	org = s.query(Organisation).get(org_id)
+	org.name = name
+	s.close()
+	return name
+
+def get_all_simple_aliases():
+	s = Session()
+	result = s.execute(get_all_simple_aliases_statement()).fetchall()
+	s.close()
+	return result
+	
+def get_all_aliases_by_one(name, jurisdiction):
+	s = Session()
+	result = s.execute(get_all_aliases_by_one_statement(name, jurisdiction)).fetchall()
+	s.close()
 	return result
 

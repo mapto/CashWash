@@ -1,6 +1,5 @@
 # __all__ = []
 
-from private import oc_api_key as api_key
 from settings import data_path, dateformat_log
 from settings import debug
 
@@ -12,3 +11,6 @@ from .statements import get_incoming_statement, get_outgoing_statement
 
 from .persistence import get_organisation_by_account, merge_organisations
 from .persistence import upsert_organisation, upsert_alias
+from .persistence import get_all_simple_aliases
+
+from .service import optimise_aliases

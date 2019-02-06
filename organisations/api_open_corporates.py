@@ -7,12 +7,9 @@ from os import path, makedirs
 from datetime import datetime
 import json
 
-from private import oc_api_key as api_key
-from settings import data_path, dateformat_log
-
 import api_util as util
 
-oc_path = data_path + 'opencorporates/'
+import organisations.api_open_corporates_settings as api_settings
 
 # see documentation at
 # https://bank.codes/api-iban/
@@ -20,7 +17,7 @@ oc_path = data_path + 'opencorporates/'
 
 missing_jurisdictions = ["BZ", "IT"]
 
-token_var = "api_token=%s&per_page=100" % api_key
+token_var = "api_token=%s&per_page=100" % api_settings.key
 search_page = "search?q=%s"
 jurisdiction_var = "country_code=%s"
 
@@ -32,6 +29,7 @@ base_url = "https://api.opencorporates.com/v0.4/"
 search_url = base_url + "%s/" + search_page + "&" + token_var
 
 search_file = "search.%s.%s.json"
+companies_file_pattern = search_file % ("companies", "*.*")
 
 "https://api.opencorporates.com/companies/nl/17087985"
 "https://api.opencorporates.com/v0.4/companies/search?q=barclays+bank"
@@ -46,40 +44,9 @@ search_file = "search.%s.%s.json"
 
 "https://api.opencorporates.com/v0.4/account_status?api_token=yourapitokengoeshere"
 
-datestamp = datetime.now().strftime(dateformat_log[:6])
-
-query_limit = 10000
-counter_path = "%scounter.%s.txt" % (oc_path, datestamp)
-query_counter = False
-
 def init():
-	if not path.exists(oc_path):
-		makedirs(oc_path)
-
-def _limit_queries(query_path, query_counter):
-	"""Query path is needed in order to know if query is already cached, and thus excluded from the counter"""
-	if not query_counter:
-		#if path.exists(counter_path):
-		try:
-			with open(counter_path, 'r') as f:
-				query_counter = int(f.read())
-		except FileNotFoundError:
-			query_counter = 0
-
-	if not path.exists(query_path):
-		if query_counter >= query_limit:
-			return True
-	
-		query_counter += 1
-		with open(counter_path, 'w') as f:
-			f.write(str(query_counter))
-
-	return False
-
-def _perform_search(query_path, filename):
-	if not api_key or _limit_queries(query_path, query_counter):
-		raise PermissionError("Daily limit reached")
-	return util.get_json_cached(query_path, filename)
+	if not path.exists(api_settings.api_path):
+		makedirs(api_settings.api_path)
 
 def _build_search_url(term, domain="companies", jurisdiction=None):
 	"""
@@ -132,8 +99,8 @@ def search_entities(term, domain=None, jurisdiction=None):
 
 	# query_path = base_url + "companies" + "/" + (search_url % term) + "&" + token_var
 	query_url = _build_search_url(term, domain, jurisdiction)
-	query_path = oc_path + _build_search_file(term, domain, jurisdiction)
-	return _perform_search(query_path, query_url)
+	query_path = api_settings.api_path + _build_search_file(term, domain, jurisdiction)
+	return util.peform_search(query_path, query_url, api_settings)
 
 def search_statements(term, domain=None, jurisdiction=None):
 	if jurisdiction in missing_jurisdictions:
@@ -148,9 +115,20 @@ def search_statements(term, domain=None, jurisdiction=None):
 
 	# query_path = base_url + "statements" + "/" + "gazette_notices" + "/" + (search_url % term) + "&" + token_var
 	query_url = _build_search_url(term, "statements/" + domain, jurisdiction)
-	query_path = oc_path + _build_search_file(term, "statements." + domain, jurisdiction)
+	query_path = api_settings.api_path + _build_search_file(term, "statements." + domain, jurisdiction)
 	
-	return _perform_search(query_path, query_url)
+	return util.peform_search(query_path, query_url, api_settings)
+
+def get_cached_results_count(term, jurisdiction):
+	filename = api_settings.api_path + _build_search_file(term, jurisdiction=jurisdiction)
+	result = util.get_local_json(filename)
+	if not result:
+		return 0
+	else:
+		return int(result["results"]["total_count"])
+	
+def get_cached_companies():
+	return util.get_cached_list(companies_file_pattern, api_settings)
 
 if __name__ == '__main__':
 	init()

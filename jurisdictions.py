@@ -39,6 +39,12 @@ def _link_organisation_jurisdiction(s, country, organisation):
 def _jurisdiction_by_code(s, code):
 	return s.query(Jurisdiction).filter(Jurisdiction.code == code).first()
 
+def get_jurisdiction_code(id):
+	s = Session()
+	result = s.query(Jurisdiction).get(id).code
+	s.close()
+	return result
+
 def jurisdiction_by_code(code):
 	s = Session()
 	result = _jurisdiction_by_code(s, code)

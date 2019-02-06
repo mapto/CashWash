@@ -6,6 +6,9 @@ from organisations import merge_organisations
 
 from util import is_blank
 
+# from . import debug
+debug = False
+
 def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 	"""Atomic operation
 	includes commit
@@ -27,7 +30,7 @@ def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 		if acc.organisation:
 
 			if org_id and org_id != acc.owner_id:
-				print("Account %s with different owner: old: %s; new: %s"\
+				if debug: print("Account %s with different owner: old: %s; new: %s"\
 					%(code, acc.owner_id, org_id))
 				merge_organisations(acc.owner_id, org_id)
 				org_id = acc.owner_id

@@ -3,60 +3,28 @@ from datetime import datetime
 import json
 from requests.exceptions import ConnectionError
 
-from . import api_key, data_path, dateformat_log
-#from . import debug
+# from . import debug
 debug = False
 
-from api_util import get_json_cached
+from api_util import peform_search, get_cached_list
 
 from .util import account_type
 
-bank_codes_path = data_path + 'bank_codes/'
+import banks.api_bank_codes_settings as api_settings
 
 # see documentation at
 # https://bank.codes/api-iban/
 # https://bank.codes/api-swift-code/
 
-iban_url = 'https://api.bank.codes/iban/json/%s/' % api_key
-swift_url = 'https://api.bank.codes/swift/json/%s/' % api_key
+urls = {"IBAN": 'https://api.bank.codes/iban/json/%s/' % api_settings.key,\
+	"SWIFT": 'https://api.bank.codes/swift/json/%s/' % api_settings.key}
 
-urls = {"IBAN": iban_url, "SWIFT": swift_url}
-
-datestamp = datetime.now().strftime(dateformat_log[:6])
-
-#query_limit = 50
-query_limit = 19
-counter_path = "%scounter.%s.txt" % (bank_codes_path, datestamp)
-query_counter = False
-
-def _limit_queries(query_path, query_counter):
-	if not query_counter:
-		#if path.exists(counter_path):
-		try:
-			with open(counter_path, 'r') as f:
-				query_counter = int(f.read())
-		except FileNotFoundError:
-			query_counter = 0
-
-	if not path.exists(query_path):
-		if query_counter > query_limit:
-			return True
-	
-		query_counter += 1
-		with open(counter_path, 'w') as f:
-			f.write(str(query_counter))
-
-	return False
+bank_codes_file_pattern = "*.json"
 
 def _get_account_info(code):
-	acc_type = account_type(code)
-	query_path = bank_codes_path + code + ".json"
-
-	if not api_key:
-		raise PermissionError("Missing API key")
-	if _limit_queries(query_path, query_counter):
-		raise PermissionError("Daily limit reached")
-	return get_json_cached(query_path, urls[acc_type] + code)
+	query_url = urls[account_type(code)] + code
+	query_path = api_settings.api_path + code + ".json"
+	return peform_search(query_path, query_url, api_settings)
 
 def fetch_account_info(code):
 	try:
@@ -77,16 +45,13 @@ def fetch_account_info(code):
 	return data
 
 def get_cached_accounts():
-	from glob import glob
-	files = glob(bank_codes_path + "*.json")
-	prefix_len = len(bank_codes_path)
-	return [path[prefix_len:-5] for path in files]
+	return get_cached_list(bank_codes_file_pattern, api_settings)
 
 def get_account_country(code):
 	data = fetch_account_info(code)
 
 	if not data or "countrycode" not in data:
-		print(data)
+		print("api_bank_codes.get_account_country did not find 'countrycode' not in %s" % data)
 		return None
 
 	return data["countrycode"]
@@ -97,6 +62,7 @@ def get_account_bank_name(code):
 	if not data:
 		return None
 	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
+		print("api_bank_codes.get_account_country did not find name field not in %s" % data)
 		print(data)
 		return None
 
@@ -114,7 +80,7 @@ def get_account_bank_code(code):
 	data = fetch_account_info(code)
 	
 	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
-		print(data)
+		print("api_bank_codes.get_account_country did not find name field not in %s" % data)
 		return None
 
 	if "bic" in data:
