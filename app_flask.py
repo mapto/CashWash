@@ -41,12 +41,11 @@ def _prepare_datatable_parameters(request):
 	
 	return (draw, start, length, order)	
 
-# Summary
+# API queries
 @app.route('/summary', methods=['GET'])
 def get_summary():
 	return send_from_directory(static_path + "js", "summary.json")
 
-# API queries
 @app.route('/api/bank_codes/<code>', methods=['GET'])
 def query_bank_codes(code):
 	return jsonify(banks.fetch_account_info(code))
@@ -56,13 +55,23 @@ def query_bank_codes(code):
 def query_open_corporates(name, jurisdiction=None):
 	return jsonify(organisations.search_entities(name, jurisdiction=jurisdiction))
 
+
 # Datatables
+## Transactions
 @app.route('/datatables/transactions', methods=['GET'])
 def get_datatable_transactions():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_transactions(*params)	
 	return jsonify(response)
 
+@app.route('/datatables/cashflows', methods=['GET'])
+def get_datatable_cashflows():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_cashflows(*params)
+	return jsonify(response)
+
+
+## Organisations
 @app.route('/datatables/organisations', methods=['GET'])
 def get_datatable_organisations():
 	params = _prepare_datatable_parameters(request)
@@ -75,13 +84,6 @@ def get_datatable_intermediaries():
 	response = datatables.get_datatable_intermediaries(*params)
 	return jsonify(response)
 
-@app.route('/datatables/cashflows', methods=['GET'])
-def get_datatable_cashflows():
-	params = _prepare_datatable_parameters(request)
-	response = datatables.get_datatable_cashflows(*params)
-	return jsonify(response)
-
-
 @app.route('/datatables/aliases/<org_id>', methods=['GET'])
 def get_datatable_aliases(org_id):
 	if not org_id:
@@ -91,7 +93,6 @@ def get_datatable_aliases(org_id):
 	response = datatables.get_datatable_aliases(int(org_id), *params)
 	return jsonify(response)
 
-
 @app.route('/datatables/accounts/<org_id>', methods=['GET'])
 def get_datatable_accounts(org_id):
 	if not org_id:
@@ -100,7 +101,6 @@ def get_datatable_accounts(org_id):
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_accounts(int(org_id), *params)
 	return jsonify(response)
-
 
 @app.route('/datatables/incoming/<org_id>', methods=['GET'])
 def get_datatable_incoming(org_id):
@@ -119,6 +119,22 @@ def get_datatable_outgoing(org_id):
 
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_outgoing(int(org_id), *params)
+	return jsonify(response)
+
+
+## Banks
+@app.route('/datatables/banks', methods=['GET'])
+def get_datatable_banks():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_banks(*params)
+	return jsonify(response)
+
+
+## Jurisdictions
+@app.route('/datatables/jurisdictions', methods=['GET'])
+def get_datatable_jurisdictions():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_jurisdictions(*params)
 	return jsonify(response)
 
 

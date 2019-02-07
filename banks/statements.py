@@ -1,4 +1,5 @@
-"""Used by datatables"""
+"""Used by datatables.
+Aims for generic SQL syntax"""
 
 from sqlalchemy import text, column, select
 from sqlalchemy import DateTime
@@ -29,13 +30,13 @@ join organisation tbo on tbo.id=tba.owner_id
 def get_intermediaries_statement():
 	s = """
 select
-	inflow, outflow,
+	inflow, outflow, balance
 	intermediary_org, intermediary_acc
 from intermediary
 	"""
 	subquery = text(s).columns()
 
-	return select([column("inflow"),column("outflow"),\
+	return select([column("inflow"),column("outflow"),column("balance"),\
 		column("intermediary_org"), column("intermediary_acc")])\
 		.select_from(subquery)
 
@@ -43,6 +44,7 @@ def get_cashflows_statement():
 	s = """
 select
 	inflow, outflow,
+	balance,
 	source_org, source_acc,
 	intermediary_org, intermediary_acc,
 	destination_org, destination_acc
@@ -50,8 +52,29 @@ from cashflow
 	"""
 	subquery = text(s).columns()
 
-	return select([column("inflow"),column("outflow"),\
+	return select([column("inflow"),column("outflow"),column("balance"),\
 		column("source_org"), column("source_acc"),\
 		column("intermediary_org"), column("intermediary_acc"),\
 		column("destination_org"), column("destination_acc")])\
 		.select_from(subquery)
+
+def get_banks_statement():
+	s = """
+select
+	tba.code code,
+	tba.name name,
+	tjur.code jurisdiction,
+	count(DISTINCT tacc.id) accs,
+	count(DISTINCT torg.id) orgs
+from bank tba
+join jurisdiction tjur on tjur.id=tba.country_id
+join account tacc on tacc.bank_id=tba.id
+join organisation torg on torg.id=tacc.owner_id
+group by tba.id
+	"""
+	subquery = text(s).columns()
+
+	return select([column("code"),column("name"),column("jurisdiction"),\
+		column("accs"), column("orgs")])\
+		.select_from(subquery)
+

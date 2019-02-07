@@ -4,6 +4,7 @@ import json
 from requests.exceptions import ConnectionError
 
 # from . import debug
+# debug = True
 debug = False
 
 import api_util as util
@@ -15,6 +16,9 @@ import banks.api_bank_codes_settings as api_settings
 # see documentation at
 # https://bank.codes/api-iban/
 # https://bank.codes/api-swift-code/
+
+bank_name_fields = ["bank", "email", "web"]
+bank_code_fields = ["swift_code", "bic", "bank_code", "sort_code", "blz", "bank_branch_code"]
 
 urls = {"IBAN": 'https://api.bank.codes/iban/json/%s/' % api_settings.key,\
 	"SWIFT": 'https://api.bank.codes/swift/json/%s/' % api_settings.key}
@@ -32,15 +36,20 @@ def fetch_account_info(code, offline=False):
 	try:
 		data = _get_account_info(code, offline)
 	except (PermissionError, ConnectionError) as err:
-		if debug: print(err)
+		if debug: print("PermissionError|ConnectionError: %s"% err)
 		return None
 
 	valid = False
-	if data and ("result" in data):
+	if data and ("result" in data): # IBAN
 		valid = data["result"]["validation"]["iban_validity"] == "Valid"
 		if valid:
 			data = data["result"]["data"]
-	valid = valid or (("valid" in data) and (data["valid"].upper() == "TRUE"))
+			if not offline and "swift_code" in data:  # Also make a request to fetch SWIFT data
+				fetch_account_info(data["swift_code"][:8], offline=False)
+	if not data and len(code) == 11: # long SWIFT
+		data = fetch_account_info(code[:8], offline=offline) # short SWIFT
+
+	valid = valid or data and (("valid" in data) and (data["valid"].upper() == "TRUE"))
 	if not valid:
 		print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
@@ -52,47 +61,44 @@ def get_cached_accounts():
 def get_account_country(code):
 	data = fetch_account_info(code)
 
-	if not data or "countrycode" not in data:
-		print("Unable to get account country from %s" % data)
-		return None
+	if data and "countrycode" in data:
+		return data["countrycode"]
 
-	return data["countrycode"]
+	if debug: print("Unable to get bank country from %s" % data)
+	return None
+
 
 def get_account_bank_name(code, offline=False):
 	data = fetch_account_info(code, offline)
-	
 	if not data:
 		return None
-	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
-		print("Unable to get bank name from %s" % data)
-		print(data)
-		return None
 
-	if "bank" in data:
-		return data["bank"]
-	if "bank_code" in data:
-		return data["bank_code"]
-	if "bic" in data:
-		return data["bic"]
-	if "bank_branch_code" in data:
-		return data["bank_branch_code"]
+	acc_type = account_type(code)
+	if acc_type == "IBAN":
+		for val in bank_name_fields + bank_code_fields:
+			if val in data and data[val].strip():
+				return data[val]
+	elif acc_type == "SWIFT":
+		if data and "bank" in data:
+			return data["bank"]
+
+	if debug: print("Unable to get bank name from %s" % data)
 	return None
 
 def get_account_bank_code(code, offline=False):
 	data = fetch_account_info(code, offline)
-	
-	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
-		if debug: print("Unable to get bank code from %s" % data)
+	if not data:
 		return None
 
-	if "bic" in data:
-		return data["bic"]
-	if "bank_code" in data:
-		return data["bank_code"]
-	if "bank" in data:
-		return data["bank"]
-	if "bank_branch_code" in data:
-		return data["bank_branch_code"]
+	acc_type = account_type(code)
+	if acc_type == "IBAN":
+		for val in bank_code_fields:
+			if val in data and data[val].strip():
+				return data[val]
+	elif acc_type == "SWIFT":
+		return code
+
+	if debug: print("Unable to get bank code from %s" % data)
 	return None
 
 def account_bank_code(code, offline=False):
@@ -100,8 +106,6 @@ def account_bank_code(code, offline=False):
 	if acc_type == "IBAN":
 		return get_account_bank_code(code, offline)
 	if acc_type == "SWIFT":
-		#if len(code) == 8:
-		#	code = code + "XXX"
-		return get_account_bank_code(code, offline)
+		return code
 	return None
 

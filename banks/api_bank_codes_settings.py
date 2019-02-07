@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from private import oc_api_key as api_key
+from private import bankcodes_api_key as api_key
 from . import data_path, dateformat_log
 
 api_path = data_path + 'bank_codes/'

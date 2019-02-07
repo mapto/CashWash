@@ -1,4 +1,6 @@
-"""sqlite syntax"""
+"""Creates views that allow easier exploration of the data
+Because the data is static and for performance reasons, the current version creates tables rather than views.
+Aims for generic SQL syntax, but tested on SQLite"""
 
 import json
 from sqlalchemy import func
@@ -10,6 +12,28 @@ from settings import static_path
 
 summary_json = static_path + "js/summary.json"
 
+# view - legacy - structure needs to be updated in accordance to table version
+'''
+create_view_intermediary = """
+create view intermediary as
+select
+	sum(tf.amount_usd) inflow,
+	sum(tt.amount_usd) outflow,
+	ts.code source,
+	ti.code intermediary,
+	td.code destination
+from "transaction" tf
+join "transaction" tt on tf.beneficiary_id=tt.payee_id
+join account ts on ts.id=tf.payee_id
+join account ti on ti.id=tt.payee_id
+join account td on td.id=tt.beneficiary_id
+group by intermediary
+order by inflow desc, outflow desc;
+"""
+'''
+# select * from intermediary;
+
+# drop view if exists intermediary;
 drop_table_intermediary ="""
 drop table if exists intermediary
 """
@@ -61,6 +85,7 @@ CREATE TABLE cashflow(
   destination_acc  VARCHAR
 )
 """
+
 populate_table_cashflow = """
 insert into cashflow 
 select
@@ -80,29 +105,34 @@ JOIN account tda      ON tda.id=tt.beneficiary_id
 JOIN organisation tdo ON tdo.id=tda.owner_id
 GROUP BY source_org, intermediary_org, destination_org
 """
-# view - legacy - structure needs to be updated in accordance to table version
-'''
-create_view_intermediary = """
-create view intermediary as
-select
-	sum(tf.amount_usd) inflow,
-	sum(tt.amount_usd) outflow,
-	ts.code source,
-	ti.code intermediary,
-	td.code destination
-from "transaction" tf
-join "transaction" tt on tf.beneficiary_id=tt.payee_id
-join account ts on ts.id=tf.payee_id
-join account ti on ti.id=tt.payee_id
-join account td on td.id=tt.beneficiary_id
-group by intermediary
-order by inflow desc, outflow desc;
-"""
-'''
-# select * from intermediary;
 
-# drop view if exists intermediary;
-# drop table if exists intermediary;
+drop_table_balance ="""
+drop table if exists balance
+"""
+
+create_table_balance ="""
+CREATE TABLE balance(
+  id      INTEGER,
+  name    VARCHAR,
+  inflow  INTEGER,
+  outflow INTEGER,
+  balance INTEGER
+)
+"""
+
+populate_table_balance = """
+insert into balance 
+select
+	torg.id, torg.name,
+	sum(tin.amount_usd) inflow,
+	sum(tout.amount_usd) outflow,
+	sum(tin.amount_usd) - sum(tout.amount_usd) balance
+from organisation torg
+left outer join "transaction" tin on tin.beneficiary_id=torg.id
+left outer join "transaction" tout on tout.payee_id=torg.id
+group by torg.id
+"""
+
 
 def init_intermediary_table():
 	s = Session()
@@ -117,6 +147,14 @@ def init_cashflow_table():
 	s.execute(drop_table_cashflow)
 	s.execute(create_table_cashflow)
 	s.execute(populate_table_cashflow)
+	s.commit()
+	s.close()
+
+def init_balance_table():
+	s = Session()
+	s.execute(drop_table_balance)
+	s.execute(create_table_balance)
+	s.execute(populate_table_balance)
 	s.commit()
 	s.close()
 
@@ -168,6 +206,7 @@ def init_summary():
 def init_derived():
 	init_cashflow_table()
 	init_intermediary_table()
+	init_balance_table()
 
 def init():
 	init_derived()

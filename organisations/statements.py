@@ -1,4 +1,5 @@
-"""Used by datatables"""
+"""Used by datatables
+Aims for generic SQL syntax"""
 
 from sqlalchemy import text, column, select, bindparam
 from sqlalchemy import String
@@ -19,16 +20,12 @@ where ta.owner_id=%d and ta.code!=""
 def get_organisations_statement():
 	s = """
 select
-	torg.id, torg.name,
-	sum(tin.amount_usd) inflow,
-	sum(tout.amount_usd) outflow
-from organisation torg
-left outer join "transaction" tin on tin.beneficiary_id=torg.id
-left outer join "transaction" tout on tout.payee_id=torg.id
-group by torg.id
+	id, name,
+	inflow,	outflow, balance,
+from balance
 	"""
 	subquery = text(s).columns()
-	return select([column("id"), column("name"), column("inflow"), column("outflow")]).select_from(subquery)
+	return select([column("id"), column("name"), column("inflow"), column("outflow"), column("balance")]).select_from(subquery)
 
 def get_aliases_statement(org_id):
 	s = """

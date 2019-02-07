@@ -38,7 +38,8 @@ def mistake504(code):
 def get_organisation_by_account(code):
 	return banks.query_organisation_by_account(code)
 
-# Datatables
+# Util
+## Datatables
 def _prepare_datatable_parameters(request):
 	draw = request.query['draw']
 	start = request.query['start']
@@ -57,12 +58,11 @@ def _prepare_datatable_parameters(request):
 	
 	return (draw, start, length, order)	
 
-# Summary
+# API queries
 @route('/summary', method=['GET'])
 def get_summary():
 	return static_file("summary.json", root=static_path + "js") # bottle wants root path without trailing slash
 
-# API queries
 @route('/api/bank_codes/<code>', method=['GET'])
 def query_bank_codes(code):
 	return banks.fetch_account_info(code)
@@ -72,13 +72,23 @@ def query_bank_codes(code):
 def query_open_corporates(name, jurisdiction=None):
 	return organisations.search_entities(name, jurisdiction=jurisdiction)
 
+
 # Datatables
+## Transactions
 @route('/datatables/transactions', method=['GET'])
 def get_datatable_transactions():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_transactions(*params)	
 	return response
 
+@route('/datatables/cashflows', method=['GET'])
+def get_datatable_cashflows():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_cashflows(*params)
+	return response
+
+
+## Organisations
 @route('/datatables/organisations', method=['GET'])
 def get_datatable_organisations():
 	params = _prepare_datatable_parameters(request)
@@ -91,13 +101,6 @@ def get_datatable_intermediaries():
 	response = datatables.get_datatable_intermediaries(*params)
 	return response
 
-@route('/datatables/cashflows', method=['GET'])
-def get_datatable_cashflows():
-	params = _prepare_datatable_parameters(request)
-	response = datatables.get_datatable_cashflows(*params)
-	return response
-
-
 @route('/datatables/aliases/<org_id>', method=['GET'])
 def get_datatable_aliases(org_id):
 	if not org_id:
@@ -107,7 +110,6 @@ def get_datatable_aliases(org_id):
 	response = datatables.get_datatable_aliases(int(org_id), *params)
 	return response
 
-
 @route('/datatables/accounts/<org_id>', method=['GET'])
 def get_datatable_accounts(org_id):
 	if not org_id:
@@ -116,7 +118,6 @@ def get_datatable_accounts(org_id):
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_accounts(int(org_id), *params)
 	return response
-
 
 @route('/datatables/incoming/<org_id>', method=['GET'])
 def get_datatable_incoming(org_id):
@@ -135,6 +136,22 @@ def get_datatable_outgoing(org_id):
 
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_outgoing(int(org_id), *params)
+	return response
+
+
+## Banks
+@route('/datatables/banks', method=['GET'])
+def get_datatable_banks():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_banks(*params)
+	return response
+
+
+## Jurisdictions
+@route('/datatables/jurisdictions', method=['GET'])
+def get_datatable_jurisdictions():
+	params = _prepare_datatable_parameters(request)
+	response = datatables.get_datatable_jurisdictions(*params)
 	return response
 
 
