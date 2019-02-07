@@ -6,7 +6,7 @@ from requests.exceptions import ConnectionError
 # from . import debug
 debug = False
 
-from api_util import peform_search, get_cached_list
+import api_util as util
 
 from .util import account_type
 
@@ -21,14 +21,16 @@ urls = {"IBAN": 'https://api.bank.codes/iban/json/%s/' % api_settings.key,\
 
 bank_codes_file_pattern = "*.json"
 
-def _get_account_info(code):
+def _get_account_info(code, offline=False):
 	query_url = urls[account_type(code)] + code
 	query_path = api_settings.api_path + code + ".json"
-	return peform_search(query_path, query_url, api_settings)
+	if offline:
+		return util.get_local_json(query_path)
+	return util.peform_search(query_path, query_url, api_settings)
 
-def fetch_account_info(code):
+def fetch_account_info(code, offline=False):
 	try:
-		data = _get_account_info(code)
+		data = _get_account_info(code, offline)
 	except (PermissionError, ConnectionError) as err:
 		if debug: print(err)
 		return None
@@ -45,24 +47,24 @@ def fetch_account_info(code):
 	return data
 
 def get_cached_accounts():
-	return get_cached_list(bank_codes_file_pattern, api_settings)
+	return util.get_cached_list(bank_codes_file_pattern, api_settings)
 
 def get_account_country(code):
 	data = fetch_account_info(code)
 
 	if not data or "countrycode" not in data:
-		print("api_bank_codes.get_account_country did not find 'countrycode' not in %s" % data)
+		print("Unable to get account country from %s" % data)
 		return None
 
 	return data["countrycode"]
 
-def get_account_bank_name(code):
-	data = fetch_account_info(code)
+def get_account_bank_name(code, offline=False):
+	data = fetch_account_info(code, offline)
 	
 	if not data:
 		return None
 	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
-		print("api_bank_codes.get_account_country did not find name field not in %s" % data)
+		print("Unable to get bank name from %s" % data)
 		print(data)
 		return None
 
@@ -76,11 +78,11 @@ def get_account_bank_name(code):
 		return data["bank_branch_code"]
 	return None
 
-def get_account_bank_code(code):
-	data = fetch_account_info(code)
+def get_account_bank_code(code, offline=False):
+	data = fetch_account_info(code, offline)
 	
 	if not data or not {"bic", "bank", "bank_code", "bank_branch_code"}.intersection(data):
-		print("api_bank_codes.get_account_country did not find name field not in %s" % data)
+		if debug: print("Unable to get bank code from %s" % data)
 		return None
 
 	if "bic" in data:
@@ -93,13 +95,13 @@ def get_account_bank_code(code):
 		return data["bank_branch_code"]
 	return None
 
-def account_bank_code(code):
+def account_bank_code(code, offline=False):
 	acc_type = account_type(code)
 	if acc_type == "IBAN":
-		return get_account_bank_code(code)
+		return get_account_bank_code(code, offline)
 	if acc_type == "SWIFT":
 		#if len(code) == 8:
 		#	code = code + "XXX"
-		return get_account_bank_code(code)
+		return get_account_bank_code(code, offline)
 	return None
 

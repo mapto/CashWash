@@ -14,10 +14,12 @@ h1, h2, h3, h4, h5 {
 }
 
 /* Tables */
+
+/*
 .row {
 	margin-top: 2em;
 }
-
+*/
 table {
 	font-family: 'Open Sans Condensed', sans-serif;
 }

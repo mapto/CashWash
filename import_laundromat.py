@@ -32,7 +32,7 @@ def read_role(row, role):
 	name = dataclean.clean_name(row[role + "_name"], country)
 	norm = dataclean.clean_name(row[role + "_name_norm"], country)
 
-	org_type = row[role + "_type"]
+	# org_type = row[role + "_type"]
 	core = row[role + "_core"].upper() == "TRUE"
 
 	code = str(row[role + "_account"])
@@ -59,11 +59,13 @@ def read_role(row, role):
 	acc_id = banks.get_account_by_code(code)
 	if acc_id:
 		org_id = organisations.get_organisation_by_account(acc_id)\
-			or organisations.upsert_organisation(norm, org_type, core)
+			or organisations.upsert_organisation(norm, core)
+			# or organisations.upsert_organisation(norm, org_type, core)
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
 		organisations.upsert_alias(norm, org_id, jurisdiction_id)
 	else:
-		org_id = organisations.upsert_organisation(norm, org_type, core)
+		org_id = organisations.upsert_organisation(norm, core)
+		# org_id = organisations.upsert_organisation(norm, org_type, core)
 		# TODO: Problem creating alias if the organisation is not yet persisted
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
 		organisations.upsert_alias(norm, org_id, jurisdiction_id)

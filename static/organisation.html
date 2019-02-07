@@ -35,53 +35,83 @@
 
 	<div class="container-fluid">
 		<h1 id="orgName"></h1>
-		<div class="row">
-			<div class="col-6">
-				<h2>Names</h2>
-				<table id="aliases">
-		        <thead>
-		            <tr>
-		                <th>Alias</th>
-		                <th>Country</th>
-		            </tr>
-		        </thead>
-				</table>
+		<div id="accordion">
+		  <div class="card">
+			<div class="card-header row" id="headingOne">
+			  <div class="col-6">
+				<h2 class="mb-0">Names
+					<button class="btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"><i class="fas fa-plus-square"></i></button>
+				</h2>
+			  </div>
+			  <div class="col-6">
+				<h2 class="mb-0">Accounts
+					<button class="btn" data-toggle="collapse" data-target="#collapseOne" aria-expanded="true" aria-controls="collapseOne"><i class="fas fa-plus-square"></i></button>
+				</h2>
+			  </div>
 			</div>
-			<div class="col-6">
-				<h2>Accounts</h2>
-				<table id="accounts">
-		        <thead>
-		            <tr>
-		                <th>Account</th>
-		                <th>Bank</th>
-		            </tr>
-		        </thead>
-				</table>
+			<div id="collapseOne" class="collapse show" aria-labelledby="headingOne" data-parent="#accordion">
+			  <div class="card-body row">
+				  <div class="col-6">
+					<table id="aliases">
+						<thead>
+							<tr>
+								<th>Alias</th>
+								<th>Country</th>
+							</tr>
+						</thead>
+					</table>
+				  </div>
+				  <div class="col-6">
+					<table id="accounts">
+						<thead>
+							<tr>
+								<th>Account</th>
+								<th>Bank</th>
+							</tr>
+						</thead>
+					</table>
+				  </div>
+			  </div>
 			</div>
-		</div>
-		<div class="row">
-			<div class="col-6">
-				<h2>Incoming Transactions</h2>
-				<table id="incoming">
-		        <thead>
-		            <tr>
-		                <th>Transferred (USD)</th>
-		                <th>Source</th>
-		            </tr>
-		        </thead>
-				</table>
+		  </div>
+		  <div class="card">
+			<div class="card-header row" id="headingTwo">
+			  <div class="col-6">
+				<h2 class="mb-0">Incoming
+					<button class="btn" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"><i class="fas fa-plus-square"></i></button>
+				</h2>
+			  </div>
+			  <div class="col-6">
+				<h2 class="mb-0">Outgoing
+					<button class="btn" data-toggle="collapse" data-target="#collapseTwo" aria-expanded="true" aria-controls="collapseTwo"><i class="fas fa-plus-square"></i></button>
+				</h2>
+			  </div>
 			</div>
-			<div class="col-6">
-				<h2>Outgoing Transactions</h2>
-				<table id="outgoing">
-		        <thead>
-		            <tr>
-		                <th>Transferred (USD)</th>
-		                <th>Destination</th>
-		            </tr>
-		        </thead>
-				</table>
+			<div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordion">
+			  <div class="card-body row">
+				  <div class="col-6">
+					<table id="incoming">
+						<thead>
+							<tr>
+								<th>Transferred (USD)</th>
+								<th>Source</th>
+							</tr>
+						</thead>
+					</table>
+				  </div>
+				  <div class="col-6">
+					<table id="outgoing">
+						<thead>
+							<tr>
+								<th>Transferred (USD)</th>
+								<th>Destination</th>
+							</tr>
+						</thead>
+					</table>
+				  </div>
+			  </div>
 			</div>
+		  </div>
 		</div>
 	</div>
 

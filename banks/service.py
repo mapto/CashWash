@@ -16,8 +16,8 @@ def bank_from_swift(code, fetched=False):
 	country_code = code[4:6]
 	jurisdiction_id = jurisdiction_by_code(country_code)
 
-	name = get_account_bank_name(code)
-	bank_code = get_account_bank_code(code)
+	name = get_account_bank_name(code, offline=fetched)
+	bank_code = get_account_bank_code(code, offline=fetched)
 	return upsert_bank(name=name, bank_code=bank_code, jurisdiction_id=jurisdiction_id, fetched=fetched)
 
 def account_from_iban(code, fetched=False):
@@ -27,7 +27,7 @@ def account_from_iban(code, fetched=False):
 
 	try:
 		acc_type = account_type(code)
-		bank_code = account_bank_code(code)
+		bank_code = account_bank_code(code, offline=fetched)
 		b = upsert_bank(bank_code=bank_code, jurisdiction_id=jurisdiction_id, fetched=fetched)
 		acc_id = upsert_account(code, acc_type, b)
 	except LookupError as e:

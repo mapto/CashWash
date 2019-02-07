@@ -13,7 +13,7 @@ from jurisdictions import jurisdiction_by_code
 from .statements import get_all_simple_aliases_statement, get_all_aliases_by_one_statement
 
 
-def upsert_organisation(name, org_type=None, core=None, fetched=False):
+def upsert_organisation(name, core=None, fetched=False):
 	"""Includes normalisation
 	Update not implemented
 	"""
@@ -27,14 +27,14 @@ def upsert_organisation(name, org_type=None, core=None, fetched=False):
 		# if jurisdiction != None and jurisdiction != org.jurisdiction:
 		#	print("Organisation %s with different jurisdiction: old: '%s'; new: '%s'"\
 		#		%(name, org.jurisdiction, jurisdiction))
-		if org_type != None and org_type != org.org_type:
-			print("Organisation %s with different type: old: '%s'; new: '%s'"\
-				%(name, org.org_type, org_type))
+		# if org_type != None and org_type != org.org_type:
+		# 	print("Organisation %s with different type: old: '%s'; new: '%s'"\
+		# 		%(name, org.org_type, org_type))
 		if core != None and core != org.core:
 			print("Organisation %s with different core: old: '%s'; new: '%s'"\
 				%(name, org.core, core))
 	else:
-		org = Organisation(name=name, org_type=org_type, core=core, fetched=fetched)
+		org = Organisation(name=name, core=core, fetched=fetched)
 		s.add(org)
 		s.commit()
 	result = org.id
@@ -56,12 +56,12 @@ def merge_organisations(this_id, that_id):
 	if not is_blank(that.name) and len(that.name) < len(this.name):
 		this.name = that.name
 
-	if this.org_type and that.org_type and this.org_type != that.org_type:
-		print("Organisation %s with different type: old: '%s'; new: '%s'"\
-			%(this.name, this.org_type, that.org_type))
-		success = False
-	else:
-		this.org_type = this.org_type or that.org_type
+	# if this.org_type and that.org_type and this.org_type != that.org_type:
+	# 	print("Organisation %s with different type: old: '%s'; new: '%s'"\
+	# 		%(this.name, this.org_type, that.org_type))
+	# 	success = False
+	# else:
+	# 	this.org_type = this.org_type or that.org_type
 	if this.core and that.core and this.core != that.core:
 		print("Organisation %s with different core: old: '%s'; new: '%s'"\
 			%(this.name, this.core, that.core))
