@@ -156,15 +156,6 @@ def _get_alias(s, name, org_id, country_id):
 def _get_aliases(s, org_id):
 	return s.query(Alias).filter(Alias.org_id==org_id).all()
 
-def _get_organisation_by_account(s, acc_id):
-	return s.query(Account).get(acc_id).owner_id
-
-def get_organisation_by_account(acc_id):
-	s = Session()
-	result = _get_organisation_by_account(s, acc_id)
-	s.close()
-	return result
-
 def _get_organisations_and_aliases(s):
 	return s.query(Organisation).join(Alias, Alias.org_id==Organisation.id).filter(Alias.jurisdiction != None).all()
 

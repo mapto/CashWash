@@ -5,7 +5,9 @@ from jurisdictions import jurisdiction_by_code
 from .util import account_type
 from .api_bank_codes import get_account_bank_name, get_account_bank_code, account_bank_code
 from .api_bank_codes import get_cached_accounts
+
 from .persistence import upsert_bank, upsert_account
+from .persistence import get_account_by_code, get_organisation_by_account
 
 from .lazyinit import iban_accounts, swift_banks
 
@@ -74,4 +76,12 @@ def is_cached_swift_code(name):
 	if len(name) not in [8,11] or not code[0:4].isalpha():
 		return False
 	return name in swift_banks
+
+# Portal-related services
+def query_organisation_by_account_code(code):
+	if not code:
+		return None
+	acc_id = get_account_by_code(code)
+	return get_organisation_by_account(acc_id)
+
 

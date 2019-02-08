@@ -3,10 +3,10 @@ from db import Account, Transaction, Organisation, Bank
 from db import Session
 
 from organisations import merge_organisations
-
+from jurisdictions import cached_jurisdictions
 from util import is_blank
 
-from .lazyinit import iban_accounts, swift_banks
+from .lazyinit import iban_accounts, swift_banks, cash_bank_accounts, account_owners
 
 # from . import debug
 debug = False
@@ -18,10 +18,23 @@ def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 	"""
 	# TODO: Cleanup search of accounts
 	# Does not solve the entire problem. Remains scenario when local refereces comes before IBAN reference
-	if code in iban_accounts:
+	if code in iban_accounts:  # IBAN
 		return iban_accounts[code]
 
 	s = Session()
+
+	if acc_type == "CASH":
+		if bank_id:
+			if bank_id not in cash_bank_accounts:
+				acc = Account(code=None, acc_type="CASH", bank_id=bank_id, owner_id=org_id, fetched=True)
+				s.add(acc)
+				s.commit()
+				cash_bank_accounts[bank_id] = acc.id
+				s.close()
+			return cash_bank_accounts[bank_id]
+		else:
+			print("CASH account without bank: code: %s, org: %d"%(code, org_id))
+
 	acc = None
 	if acc_type == "LOCAL":
 		iban_acc = _get_iban_account_by_local_code(s, code)
@@ -42,11 +55,10 @@ def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 		elif org_id:
 				acc.owner_id = org_id
 	else:
+		if not code:
+			print("Account without code: bank: %d, org: %d, type: %s"%(bank_id, org_id, acc_type))
 		#bank = _get_bank(s, bank_id)
-		if code:
-			acc = Account(code=code, acc_type=acc_type, bank_id=bank_id, owner_id=org_id, fetched=fetched)
-		else:
-			acc = Account(acc_type=acc_type, bank_id=bank_id, owner_id=org_id, fetched=fetched)
+		acc = Account(code=code, acc_type=acc_type, bank_id=bank_id, owner_id=org_id, fetched=fetched)
 		
 		s.add(acc)
 
@@ -67,6 +79,8 @@ def upsert_bank(jurisdiction_id, bank_code=None, name=None, fetched=False):
 	if not bank:
 		bank = Bank(code=bank_code, name=name, country_id=jurisdiction_id, fetched=fetched)
 		s.add(bank)
+		cash_account = Account(code=None, acc_type="CASH", bank=bank, fetched=True) # CASH accounts don't really exist, so all pre-fetched
+		s.add(cash_account)
 	elif name:
 		if not bank.name:
 			bank.name = name
@@ -124,7 +138,9 @@ def insert_transaction(amount_orig, amount_usd, amount_eur, currency,\
 		investigation, purpose, date, source_file, from_acc_id, to_acc_id):
 	s = Session()
 
+	# print("from: %d"%from_acc_id)
 	from_acc = _get_account(s, from_acc_id) if from_acc_id else None
+	# print("to: %d"%to_acc_id)
 	to_acc = _get_account(s, to_acc_id) if to_acc_id else None
 	trx = Transaction(amount_orig=amount_orig, amount_usd=amount_usd, amount_eur=amount_eur,\
 		currency=currency, investigation=investigation,\
@@ -175,12 +191,15 @@ def clean_local_accounts():
 			_merge_local_accounts(candidate, next)
 	s.close()
 
+def _get_organisation_by_account(s, acc_id):
+	return s.query(Account).get(acc_id).owner_id
 
-# Portal-related services
-def query_organisation_by_account(code):
+def get_organisation_by_account(acc_id):
+	if not acc_id:
+		return None
+
 	s = Session()
-	org = s.query(Organisation).join(Account, Account.owner_id==Organisation.id).filter(Account.code==code).first()
-	result = org.json()
+	result = _get_organisation_by_account(s, acc_id)
 	s.close()
 	return result
 

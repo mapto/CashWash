@@ -22,43 +22,39 @@ laundromat_json = data_path + "laundromat.json"
 laundromat_csv_url = 'https://public.data.occrp.org/open/Combined%20Laundromats%2020180602.csv'
 laundromat_csv = data_path + "laundromat.csv"
 
-def read_role(row, role):
-	country = util.clean_confusables(row[role + "_jurisdiction"].strip())
-	if len(country) != 2:
-		if not util.is_blank(country):
-			print("Country %s is not ISO-639-1 code" % country)
-		country = None
+def read_role(name, norm=None, country="XX", code=None, bank_name=None, acc_country="XX", core=False):
+	jurisdiction_id = jurisdictions.jurisdiction_by_code(country)
 
-	name = dataclean.clean_name(row[role + "_name"], country)
-	norm = dataclean.clean_name(row[role + "_name_norm"], country)
-
-	# org_type = row[role + "_type"]
-	core = row[role + "_core"].upper() == "TRUE"
-
-	code = str(row[role + "_account"])
 	code = re.sub(r"\s" , "", code).lstrip("0")
 	acc_type = banks.account_type(code)
-	acc_country = util.clean_confusables(row[role + "_bank_country"])
-
-	bank_name = dataclean.clean_name(row[role + "_bank"], acc_country)
 	bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None
 
-	if acc_type == "IBAN":
+	if acc_type == "CASH" and banks.account_type(name) == "SWIFT":
+		bank_code = name
+		code = None
+		name = None
+		norm = None
+		acc_bank_id = banks.get_bank(jurisdiction_id, bank_code)\
+			or banks.upsert_bank(jurisdiction_id, bank_code=bank_code, name=bank_name)
+		acc_id = banks.upsert_account(code, acc_type, acc_bank_id, None)
+		return acc_id		
+	elif acc_type == "IBAN":
 		bank_country = code[0:2]
-		if not util.is_blank(bank_country) and acc_country != bank_country:
+		if not bank_country or (bank_country not in jurisdictions.cached_jurisdictions().keys()):
+			print("Unrecognised account country: %s" % bank_country)
+			bank_country = "XX"
+		if acc_country != bank_country:
 			if not util.is_blank(acc_country):
 				print("Account %s with conflicting bank country: jurisdiction: '%s'; code: '%s'"\
 					%(code, acc_country, bank_country))
 			acc_country = bank_country
 	elif acc_type == "SWIFT":
-		acc_country = code[4:6]		
+		acc_country = code[4:6]
 
-	jurisdiction_id = jurisdictions.jurisdiction_by_code(country)
 	acc_jurisdiction_id = jurisdictions.jurisdiction_by_code(acc_country)
-
 	acc_id = banks.get_account_by_code(code)
 	if acc_id:
-		org_id = organisations.get_organisation_by_account(acc_id)\
+		org_id = banks.get_organisation_by_account(acc_id)\
 			or organisations.upsert_organisation(norm, core)
 			# or organisations.upsert_organisation(norm, org_type, core)
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
@@ -78,8 +74,27 @@ def read_role(row, role):
 
 	return acc_id
 
+def parse_role(row, role):
+	country = util.clean_confusables(row[role + "_jurisdiction"].strip())
+	"""
+	if len(country) != 2:
+		if not util.is_blank(country):
+			print("Country %s is not ISO-639-1 code" % country)
+		country = None
+	"""
+	name = dataclean.clean_name(row[role + "_name"], country)
+	norm = dataclean.clean_name(row[role + "_name_norm"], country)
 
-def read_transaction(row, from_acc_id, to_acc_id):
+	# org_type = row[role + "_type"]
+	core = row[role + "_core"].upper() == "TRUE"
+
+	code = str(row[role + "_account"])
+	acc_country = util.clean_confusables(row[role + "_bank_country"])
+	bank_name = dataclean.clean_name(row[role + "_bank"], acc_country)
+
+	return read_role(name, norm, country, code, bank_name, acc_country, core)
+
+def parse_transaction(row, from_acc_id, to_acc_id):
 	amount_orig = util.parse_amount(row['amount_orig'])
 	amount_usd = util.parse_amount(row['amount_usd'])
 	amount_eur = util.parse_amount(row['amount_eur'])
@@ -122,7 +137,7 @@ def json2db(data):
 	}
 	'''
 	print("Preloading jurisdictions...")
-	jurisdictions.preload_jurisdictions()
+	jurisdictions.cached_jurisdictions()
 	print("Preloading cached accounts...")
 	banks.preload_cached_accounts()
 	print("Importing transactions...")
@@ -132,9 +147,9 @@ def json2db(data):
 		# print(row)
 		counter += 1
 		if not (100 * counter / total % 1): print("Importing %d%%..."%(100 * counter / total))
-		from_acc = read_role(row, "payer")
-		to_acc = read_role(row, "beneficiary")
-		read_transaction(row, from_acc, to_acc)
+		from_acc = parse_role(row, "payer")
+		to_acc = parse_role(row, "beneficiary")
+		parse_transaction(row, from_acc, to_acc)
 	end = datetime.now()
 	elapsed = (end-start).total_seconds()
 	print("Transactions imported in %d mins %f secs." % (elapsed//60, elapsed%60))

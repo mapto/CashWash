@@ -30,7 +30,7 @@ join organisation tbo on tbo.id=tba.owner_id
 def get_intermediaries_statement():
 	s = """
 select
-	inflow, outflow, balance
+	inflow, outflow, balance,
 	intermediary_org, intermediary_acc
 from intermediary
 	"""
@@ -68,8 +68,8 @@ select
 	count(DISTINCT torg.id) orgs
 from bank tba
 join jurisdiction tjur on tjur.id=tba.country_id
-join account tacc on tacc.bank_id=tba.id
-join organisation torg on torg.id=tacc.owner_id
+left outer join account tacc on tacc.bank_id=tba.id
+left outer join organisation torg on torg.id=tacc.owner_id
 group by tba.id
 	"""
 	subquery = text(s).columns()

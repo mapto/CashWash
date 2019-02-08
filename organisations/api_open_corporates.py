@@ -87,6 +87,8 @@ def _build_search_file(term, domain="companies", jurisdiction=None):
 	return search_file % (composed, term)
 
 def search_entities(term, domain=None, jurisdiction=None):
+	if jurisdiction == "XX":
+		jurisdiction = None
 	if jurisdiction in missing_jurisdictions:
 		raise KeyError("Jurisdiction %s not present in OC"%jurisdiction)
 	if not domain:
@@ -103,6 +105,8 @@ def search_entities(term, domain=None, jurisdiction=None):
 	return util.peform_search(query_path, query_url, api_settings)
 
 def search_statements(term, domain=None, jurisdiction=None):
+	if jurisdiction == "XX":
+		jurisdiction = None
 	if jurisdiction in missing_jurisdictions:
 		raise KeyError("Jurisdiction %s not present in OC"%jurisdiction)
 	if not domain:

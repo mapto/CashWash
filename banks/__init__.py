@@ -10,9 +10,10 @@ from .api_bank_codes import account_bank_code, get_cached_accounts
 
 from .statements import get_intermediaries_statement, get_cashflows_statement, get_transactions_statement, get_banks_statement
 
-from .persistence import query_organisation_by_account, get_account_by_code, get_bank
+from .persistence import get_organisation_by_account, get_account_by_code, get_bank
 from .persistence import upsert_bank, upsert_account, insert_transaction, clean_local_accounts
 
 #from .banks import query_period, query_total_amount
 from .service import preload_cached_accounts, is_cached_swift_code as is_swift_code
+from .service import query_organisation_by_account_code
 

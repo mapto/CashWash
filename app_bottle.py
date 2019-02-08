@@ -2,7 +2,8 @@
 import json
 
 import bottle
-from bottle import get, route, request, response, run, error, static_file
+from bottle import get, route, request, response, abort
+from bottle import run, error, static_file
 
 from settings import host, port, static_path
 from settings import curdir, db_url
@@ -33,11 +34,6 @@ def mistake500(code):
 def mistake504(code):
     return 'Unable to access internal service.'
 
-# Object requests
-@route('/owner/<code>', method=['GET'])
-def get_organisation_by_account(code):
-	return banks.query_organisation_by_account(code)
-
 # Util
 ## Datatables
 def _prepare_datatable_parameters(request):
@@ -65,12 +61,24 @@ def get_summary():
 
 @route('/api/bank_codes/<code>', method=['GET'])
 def query_bank_codes(code):
-	return banks.fetch_account_info(code)
+	if not code:
+		abort(405, "Cannot process empty code")
+	result = banks.fetch_account_info(code)
+	if not result:
+		abort(504, "Failed fetching bank code")
+	return result
 
 @route('/api/open_corporates/<name>', method=['GET'])
 @route('/api/open_corporates/<name>/<jurisdiction>', method=['GET'])
 def query_open_corporates(name, jurisdiction=None):
 	return organisations.search_entities(name, jurisdiction=jurisdiction)
+
+# Object requests
+@route('/owner/<code>', method=['GET'])
+def get_organisation_by_account(code):
+	if not code:
+		abort(405, "Empty code has no owner")
+	return banks.query_organisation_by_account_code(code)
 
 
 # Datatables
@@ -101,7 +109,7 @@ def get_datatable_intermediaries():
 	response = datatables.get_datatable_intermediaries(*params)
 	return response
 
-@route('/datatables/aliases/<org_id>', method=['GET'])
+@route('/datatables/aliases/<org_id:int>', method=['GET'])
 def get_datatable_aliases(org_id):
 	if not org_id:
 		return datatable_empty
@@ -110,7 +118,7 @@ def get_datatable_aliases(org_id):
 	response = datatables.get_datatable_aliases(int(org_id), *params)
 	return response
 
-@route('/datatables/accounts/<org_id>', method=['GET'])
+@route('/datatables/accounts/<org_id:int>', method=['GET'])
 def get_datatable_accounts(org_id):
 	if not org_id:
 		return datatable_empty
@@ -119,7 +127,7 @@ def get_datatable_accounts(org_id):
 	response = datatables.get_datatable_accounts(int(org_id), *params)
 	return response
 
-@route('/datatables/incoming/<org_id>', method=['GET'])
+@route('/datatables/incoming/<org_id:int>', method=['GET'])
 def get_datatable_incoming(org_id):
 	if not org_id:
 		return datatable_empty
@@ -129,7 +137,7 @@ def get_datatable_incoming(org_id):
 	return response
 
 
-@route('/datatables/outgoing/<org_id>', method=['GET'])
+@route('/datatables/outgoing/<org_id:int>', method=['GET'])
 def get_datatable_outgoing(org_id):
 	if not org_id:
 		return datatable_empty

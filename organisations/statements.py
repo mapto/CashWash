@@ -21,7 +21,7 @@ def get_organisations_statement():
 	s = """
 select
 	id, name,
-	inflow,	outflow, balance,
+	inflow,	outflow, balance
 from balance
 	"""
 	subquery = text(s).columns()

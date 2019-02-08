@@ -10,7 +10,7 @@ from .statements import get_organisations_statement
 from .statements import get_accounts_statement, get_aliases_statement
 from .statements import get_incoming_statement, get_outgoing_statement
 
-from .persistence import get_organisation_by_account, merge_organisations
+from .persistence import merge_organisations
 from .persistence import upsert_organisation, upsert_alias
 from .persistence import get_all_simple_aliases
 

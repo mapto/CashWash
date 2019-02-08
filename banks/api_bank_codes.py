@@ -42,7 +42,7 @@ def fetch_account_info(code, offline=False):
 			if len(code) == 8: # short SWIFT
 				data = _get_account_info(code + 'XXX', offline)
 	except (PermissionError, ConnectionError) as err:
-		if debug: print("PermissionError|ConnectionError: %s"% err)
+		print("PermissionError|ConnectionError: %s"% err)
 		return None
 
 	valid = False
@@ -67,8 +67,8 @@ def get_cached_accounts():
 		cached_accounts = util.get_cached_list(bank_codes_file_pattern, api_settings)
 	return cached_accounts
 
-def get_account_country(code):
-	data = fetch_account_info(code)
+def get_account_country(code, offline=False):
+	data = fetch_account_info(code, offline)
 
 	if data and "countrycode" in data:
 		return data["countrycode"]

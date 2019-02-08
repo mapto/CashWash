@@ -6,7 +6,10 @@ Thus maintaining both synchronised and using at convenience."""
 from db import Session
 from db import Jurisdiction
 
-from .lazyinit import cached_jurisdictions
+from .lazyinit import _cached_jurisdictions
+from .api_wikipedia import import_countries
+
+from .statements import get_jurisdictions_statement
 
 # from . import debug
 debug = False
@@ -21,22 +24,30 @@ def get_jurisdiction_code(id):
 	return result
 
 def jurisdiction_by_code(code):
-	return cached_jurisdictions[code] if code in cached_jurisdictions else cached_jurisdictions["XX"]
+	return _cached_jurisdictions[code] if code in _cached_jurisdictions else _cached_jurisdictions["XX"]
 
-def preload_jurisdictions():
-	from import_jurisdictions import import_countries
-	
-	all = []
-	for next in import_countries():
-		all.append(Jurisdiction(name=next["name"], code=next["code"]))
-	all.append(Jurisdiction(name="Unknown", code="XX"))
-	s = Session()
-	s.add_all(all)
-	s.commit()
-	committed = s.query(Jurisdiction).all()
+def _query_db_cache(s):
+	return s.query(Jurisdiction).all()
+
+def _load_db_cache(s):
+	global _cached_jurisdictions
+	committed = _query_db_cache(s)
 	for next in committed:
-		cached_jurisdictions[next.code] = next.id
-	if debug: print(cached_jurisdictions)
-	s.close()
-	return cached_jurisdictions
+		_cached_jurisdictions[next.code] = next.id
+	return len(_cached_jurisdictions)
+
+def cached_jurisdictions():
+	if not _cached_jurisdictions:
+		s = Session()
+		if len(_query_db_cache(s)) == 0:
+			all = []
+			for next in import_countries():
+				all.append(Jurisdiction(name=next["name"], code=next["code"]))
+			all.append(Jurisdiction(name="Unknown", code="XX"))
+			s.add_all(all)
+			s.commit()
+		_load_db_cache(s)
+		if debug: print(_cached_jurisdictions)
+		s.close()
+	return _cached_jurisdictions
 
