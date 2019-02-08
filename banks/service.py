@@ -7,7 +7,10 @@ from .api_bank_codes import get_account_bank_name, get_account_bank_code, accoun
 from .api_bank_codes import get_cached_accounts
 from .persistence import upsert_bank, upsert_account
 
+from .lazyinit import iban_accounts, swift_banks
+
 debug = False
+# debug = True
 
 # Data interfaces
 
@@ -17,10 +20,16 @@ def bank_from_swift(code, fetched=False):
 	"""fetched indicates if the data was cached from some API"""
 	country_code = code[4:6]
 	jurisdiction_id = jurisdiction_by_code(country_code)
-	code = code[:8]  # Ignore branch info
+	if not fetched:
+		code = code[:8]  # Ignore branch info
 
-	name = get_account_bank_name(code, offline=fetched)
-	bank_code = get_account_bank_code(code, offline=fetched)
+	try:
+		name = get_account_bank_name(code, offline=fetched)
+		bank_code = get_account_bank_code(code, offline=fetched)
+	except LookupError as e:
+		if debug: print("LookupError: %s"%e)
+		name = None
+		bank_code = code
 	return upsert_bank(name=name, bank_code=bank_code, jurisdiction_id=jurisdiction_id, fetched=fetched)
 
 def account_from_iban(code, fetched=False):
@@ -45,17 +54,24 @@ def account_from_iban(code, fetched=False):
 # Batch-related services
 
 def preload_cached_accounts():
-	swift = []
-	iban = []
 	for code in get_cached_accounts():
 		if len(code) < 12: # SWIFT
-			swift.append(bank_from_swift(code, fetched=True))
+			swift_banks[code] = bank_from_swift(code, fetched=True)
+			if len(code) == 11:
+				if code[:8] not in swift_banks:
+					swift_banks[code[:8]] = swift_banks[code]
+			elif len(code) == 8:
+				if code + 'XXX' not in swift_banks:
+					swift_banks[code + 'XXX'] = swift_banks[code]
 		else: # IBAN
-			iban.append(account_from_iban(code, fetched=True))
+			iban_accounts[code] = account_from_iban(code, fetched=True)
+	if debug:
+		print(iban_accounts)
+		print(swift_banks)
+	return (iban_accounts, swift_banks)
 
-	return (iban, swift)
-
-
-if __name__ == '__main__':
-	preload_cached_accounts()
+def is_cached_swift_code(name):
+	if len(name) not in [8,11] or not code[0:4].isalpha():
+		return False
+	return name in swift_banks
 

@@ -53,8 +53,8 @@ def read_role(row, role):
 	elif acc_type == "SWIFT":
 		acc_country = code[4:6]		
 
-	jurisdiction_id = jurisdictions.upsert_jurisdiction(country)
-	acc_jurisdiction_id = jurisdictions.upsert_jurisdiction(acc_country)
+	jurisdiction_id = jurisdictions.jurisdiction_by_code(country)
+	acc_jurisdiction_id = jurisdictions.jurisdiction_by_code(acc_country)
 
 	acc_id = banks.get_account_by_code(code)
 	if acc_id:
@@ -62,13 +62,15 @@ def read_role(row, role):
 			or organisations.upsert_organisation(norm, core)
 			# or organisations.upsert_organisation(norm, org_type, core)
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
-		organisations.upsert_alias(norm, org_id, jurisdiction_id)
+		if norm != name:
+			organisations.upsert_alias(norm, org_id, jurisdiction_id)
 	else:
 		org_id = organisations.upsert_organisation(norm, core)
 		# org_id = organisations.upsert_organisation(norm, org_type, core)
 		# TODO: Problem creating alias if the organisation is not yet persisted
 		organisations.upsert_alias(name, org_id, jurisdiction_id)
-		organisations.upsert_alias(norm, org_id, jurisdiction_id)
+		if norm != name:
+			organisations.upsert_alias(norm, org_id, jurisdiction_id)
 
 		acc_bank_id = banks.get_bank(jurisdiction_id, bank_code)\
 			or banks.upsert_bank(jurisdiction_id, bank_code=bank_code, name=bank_name)

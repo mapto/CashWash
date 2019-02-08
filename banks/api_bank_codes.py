@@ -10,6 +10,7 @@ debug = False
 import api_util as util
 
 from .util import account_type
+from .lazyinit import cached_accounts
 
 import banks.api_bank_codes_settings as api_settings
 
@@ -35,6 +36,11 @@ def _get_account_info(code, offline=False):
 def fetch_account_info(code, offline=False):
 	try:
 		data = _get_account_info(code, offline)
+		if not data:
+			if len(code) == 11: # long SWIFT
+				data = _get_account_info(code[:8], offline)
+			if len(code) == 8: # short SWIFT
+				data = _get_account_info(code + 'XXX', offline)
 	except (PermissionError, ConnectionError) as err:
 		if debug: print("PermissionError|ConnectionError: %s"% err)
 		return None
@@ -56,7 +62,10 @@ def fetch_account_info(code, offline=False):
 	return data
 
 def get_cached_accounts():
-	return util.get_cached_list(bank_codes_file_pattern, api_settings)
+	global cached_accounts
+	if not cached_accounts:
+		cached_accounts = util.get_cached_list(bank_codes_file_pattern, api_settings)
+	return cached_accounts
 
 def get_account_country(code):
 	data = fetch_account_info(code)

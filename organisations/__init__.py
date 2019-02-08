@@ -1,4 +1,4 @@
-# __all__ = ['statements', 'persistence', 'service']
+__all__ = ['statements', 'persistence', 'service']
 
 from settings import data_path, dateformat_log
 from settings import debug

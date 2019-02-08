@@ -162,7 +162,7 @@ class Bank(Base):
 
 	id = Column(Integer, primary_key=True)
 
-	code = Column(String) # TODO make unique
+	code = Column(String, unique=True)
 	name = Column(String)
 	#city = Column(String)
 	#branch = Column(String)

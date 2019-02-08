@@ -6,6 +6,8 @@ from organisations import merge_organisations
 
 from util import is_blank
 
+from .lazyinit import iban_accounts, swift_banks
+
 # from . import debug
 debug = False
 
@@ -16,6 +18,9 @@ def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 	"""
 	# TODO: Cleanup search of accounts
 	# Does not solve the entire problem. Remains scenario when local refereces comes before IBAN reference
+	if code in iban_accounts:
+		return iban_accounts[code]
+
 	s = Session()
 	acc = None
 	if acc_type == "LOCAL":
@@ -52,6 +57,9 @@ def upsert_account(code, acc_type, bank_id, org_id=None, fetched=False):
 	return result
 
 def upsert_bank(jurisdiction_id, bank_code=None, name=None, fetched=False):
+	if bank_code and bank_code in swift_banks:
+		return swift_banks[bank_code]
+
 	if is_blank(name):
 		name = None
 	s = Session()
@@ -78,6 +86,9 @@ def _get_bank(s, jurisdiction_id, bank_code=None):
 	return s.query(Bank).filter(Bank.country_id == jurisdiction_id,Bank.code == bank_code).first()
 
 def get_bank(jurisdiction_id, bank_code=None):
+	if bank_code and bank_code in swift_banks:
+		return swift_banks[bank_code]
+
 	s = Session()
 	bank = _get_bank(s, jurisdiction_id, bank_code)
 	result = bank.id if bank else None
@@ -91,6 +102,9 @@ def _get_account_by_code(s, code):
 	return s.query(Account).filter(Account.code == code).first()
 
 def get_account_by_code(code):
+	if code in iban_accounts:
+		return iban_accounts[code]
+
 	s = Session()
 	acc = _get_account_by_code(s, code)
 	result = acc.id if acc else None
