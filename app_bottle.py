@@ -78,7 +78,8 @@ def query_open_corporates(name, jurisdiction=None):
 def get_organisation_by_account(code):
 	if not code:
 		abort(405, "Empty code has no owner")
-	return banks.query_organisation_by_account_code(code)
+	org_id = banks.query_organisation_by_account_code(code)
+	return organisations.get_organisation(org_id)
 
 
 # Datatables

@@ -12,6 +12,6 @@ from .statements import get_incoming_statement, get_outgoing_statement
 
 from .persistence import merge_organisations
 from .persistence import upsert_organisation, upsert_alias
-from .persistence import get_all_simple_aliases
+from .persistence import get_all_simple_aliases, get_organisation
 
 from .service import optimise_aliases

@@ -103,14 +103,14 @@ def _remove_duplicates(s, aliases):
 """
 def _get_organisation(s, org_id):
 	return s.query(Organisation).get(org_id)
-'''
+
 def get_organisation(org_id):
 	s = Session()
 	org = _get_organisation(s, org_id)
 	result = org.json()
 	s.close()
 	return result
-'''
+
 def _organisation_by_name(s, name):
 	return s.query(Organisation).filter(Organisation.name.like(name)).first()
 
