@@ -61,7 +61,7 @@ from cashflow
 def get_banks_statement():
 	s = """
 select
-	tba.code code,
+	substr(tba.code, 1, 6) code,
 	tba.name name,
 	tjur.code jurisdiction,
 	count(DISTINCT tacc.id) accs,
@@ -70,7 +70,7 @@ from bank tba
 join jurisdiction tjur on tjur.id=tba.country_id
 left outer join account tacc on tacc.bank_id=tba.id
 left outer join organisation torg on torg.id=tacc.owner_id
-group by tba.id
+group by substr(tba.code, 1, 6)
 	"""
 	subquery = text(s).columns()
 

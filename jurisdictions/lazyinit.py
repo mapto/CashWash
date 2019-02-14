@@ -1,1 +1,2 @@
-_cached_jurisdictions = {}
+_cached_jurisdictions = {}  # initialised by persistence.cached_jurisdictions()
+

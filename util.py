@@ -1,5 +1,6 @@
 import re
 import json
+import string
 
 from confusable_homoglyphs.confusables import is_confusable
 
@@ -37,6 +38,9 @@ def csv2list(filename):
 
 def is_blank(s):
 	return not s or not s.strip() or s.strip().upper() in blanks
+
+def contains_whitespace(s):
+	return True in [c in s for c in string.whitespace]
 
 def parse_amount(s):
 	try:

@@ -27,7 +27,12 @@ def read_role(name, norm=None, country="XX", code=None, bank_name=None, acc_coun
 
 	code = re.sub(r"\s" , "", code).lstrip("0")
 	acc_type = banks.account_type(code)
-	bank_code = banks.account_bank_code(code) if util.is_blank(bank_name) else None
+
+	try:
+		bank_code = banks.account_bank_code(code, offline=True) if util.is_blank(bank_name) and not util.is_blank(code) else None
+		bank_code = None if util.is_blank(bank_code) or util.contains_whitespace(bank_code) else bank_code
+	except LookupError as e:
+		bank_code = None
 
 	if acc_type == "CASH" and banks.account_type(name) == "SWIFT":
 		bank_code = name

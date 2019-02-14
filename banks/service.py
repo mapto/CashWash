@@ -20,6 +20,9 @@ debug = False
 
 def bank_from_swift(code, fetched=False):
 	"""fetched indicates if the data was cached from some API"""
+	if code in swift_banks:
+		return swift_banks[code]
+
 	country_code = code[4:6]
 	jurisdiction_id = jurisdiction_by_code(country_code)
 	if not fetched:
@@ -32,6 +35,7 @@ def bank_from_swift(code, fetched=False):
 		if debug: print("LookupError: %s"%e)
 		name = None
 		bank_code = code
+
 	return upsert_bank(name=name, bank_code=bank_code, jurisdiction_id=jurisdiction_id, fetched=fetched)
 
 def account_from_iban(code, fetched=False):
@@ -56,6 +60,8 @@ def account_from_iban(code, fetched=False):
 # Batch-related services
 
 def preload_cached_accounts():
+	upsert_bank(jurisdiction_id=None, name="UNKNOWN", fetched=True)
+	
 	for code in get_cached_accounts():
 		if len(code) < 12: # SWIFT
 			swift_banks[code] = bank_from_swift(code, fetched=True)
@@ -67,6 +73,7 @@ def preload_cached_accounts():
 					swift_banks[code + 'XXX'] = swift_banks[code]
 		else: # IBAN
 			iban_accounts[code] = account_from_iban(code, fetched=True)
+
 	if debug:
 		print(iban_accounts)
 		print(swift_banks)

@@ -57,7 +57,7 @@ def fetch_account_info(code, offline=False):
 
 	valid = valid or data and (("valid" in data) and (data["valid"].upper() == "TRUE"))
 	if not valid:
-		print("Invalid code: %s" % code)
+		if debug: print("Invalid code: %s" % code)
 		raise LookupError(json.dumps(data))
 	return data
 
