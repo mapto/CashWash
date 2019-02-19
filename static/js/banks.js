@@ -6,6 +6,7 @@ $(document).ready(function() {
 	    //     {targets: [2, 4], visible: false}
 	    // ],
 	    order: [[ 1, "asc" ]],
+        pageLength: 100,
         serverSide: true,
         stateSave: true,
     } );

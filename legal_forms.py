@@ -22,6 +22,7 @@ legal_forms = {\
 	"BM": ["LTD"],\
 	"BR": ["LTDA"],\
 	"BY": ["LTD", "OAO"],\
+	"BZ": ["LTD", "LIMITED"],\
 	"CA": ["CORP", "INC", "SA"],\
 	"CH": ["AG", "SA", "GMBH"],\
 	"CN": ["LIMITED", "LTD"],\
@@ -38,13 +39,21 @@ legal_forms = {\
 	"GB": ["LLP", "LTD", "LP", "LIMITED", "INC"],\
 	"GE": ["LTD", "LLC"],\
 	"GR": ["INC"],\
-	"HK": ["LIMITED", "LTD"],\
+	"HK": ["LIMITED", "LTD", "CO"],\
 	"HR": ["DOO"],\
 	"HU": ["KFT"],\
 	"IE": ["LTD"],\
 	"IL": ["LTD"],\
 	"IN": ["LTD"],\
+	"IT": ["SRL", "SPA"],\
+	"LB": ["SAL"],\
+	"MD": ["SRL"],\
+	"MH": ["LTD"],\
+	"NL": ["BV"],\
 	"NZ": ["LIMITED"],\
+	"PA": ["INC"],\
 	"RU": ["OAO", "OOO"],\
-	"US": ["INC", "HOLDING"]\
+	"TR": ["AS"],\
+	"US": ["INC", "HOLDING", "CORP"],\
+	"VG": ["LTD"]\
 }
