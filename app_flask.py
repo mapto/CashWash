@@ -1,6 +1,4 @@
 #!/usr/bin/env python3
-import json
-
 from werkzeug.routing import BaseConverter
 
 from flask import Flask, jsonify

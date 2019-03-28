@@ -1,6 +1,6 @@
 from os import path
 import requests
-import json, csv
+import json, csv, re
 
 # debug = True
 debug = False
@@ -60,7 +60,8 @@ def get_json_cached(filename, url):
 		if debug: print("Fetching remote json: %s"%url)
 		response = requests.get(url)
 		response.raise_for_status()
-		data = response.json()
+		# data = response.json(encoding="utf-8") # \r in content crashes parser
+		data = json.loads(re.sub(r"[\r\n]", "", response.text), encoding="utf-8")
 		with open(filename, 'w') as f:
 			json.dump(data, f)
 
