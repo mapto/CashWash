@@ -164,5 +164,8 @@ def send_resource(resource_type, filename):
 @app.get('/')
 @app.get('/<filename:re:.*\.html>')
 def send_page(filename='index.html'):
-	return static_file(filename, root=static_path[:-1]) # bottle wants root path without trailing slash
+	return static_file(filename, root=static_path[:-1])
 
+if __name__ == '__main__':
+	import uvicorn
+	uvicorn.run(app, host=host, port=port, reload=True, debug=debug)

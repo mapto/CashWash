@@ -3,7 +3,7 @@ from werkzeug.routing import BaseConverter
 
 from flask import Flask, jsonify
 from flask import send_from_directory
-from flask import request, abort
+from flask import request
 
 from settings import host, port, static_path
 # from settings import debug
@@ -64,10 +64,10 @@ def get_summary():
 @app.route('/api/bank_codes/<code>', methods=['GET'])
 def query_bank_codes(code):
 	if not code:
-		abort(405, "Cannot process empty code")
+		app.abort(405, "Cannot process empty code")
 	result = banks.fetch_account_info(code)
 	if not result:
-		abort(504, "Failed fetching bank code")
+		app.abort(504, "Failed fetching bank code")
 	return jsonify(result)
 
 @app.route('/api/open_corporates/<name>', methods=['GET'])
@@ -79,7 +79,7 @@ def query_open_corporates(name, jurisdiction=None):
 @app.route('/owner/<code>', methods=['GET'])
 def get_organisation_by_account(code):
 	if not code:
-		abort(405, "Cannot process empty code")
+		app.abort(405, "Cannot process empty code")
 	org_id = banks.query_organisation_by_account_code(code)
 	return jsonify(organisations.get_organisation(org_id))
 
