@@ -11,19 +11,29 @@ This project is using data from:
 
 No data from any of these data sources is published here. The platform allows you to provide your own API keys and extract any data yourself. To this end consider requesting your own license and adding it as indicated in the [private.py](https://github.com/mapto/CashWash/blob/master/private.py) file.
 
-There are currently two versions supported, one using [flask](http://flask.pocoo.org/), and one using [bottle](https://bottlepy.org/docs/dev/). The version you want would determine the dependencies you want to install. If unsure, I suggest going for bottle.
+There are currently several alternative versions supported, using different web frameworks:
+
+* [flask](http://flask.pocoo.org/)
+* [bottle](https://bottlepy.org/docs/dev/)
+* [fastapi](https://fastapi.tiangolo.com/)
+
+The version you want would determine the dependencies you want to install. If unsure, I suggest going for bottle.
 
 # Installation and configuration
 
 This project requires [python3](https://www.python.org/download/) and a [SQLite](https://sqlite.org) server.
 
-To install dependencies to run with bottle you need to run this command first:
+To install all dependencies, run:
+
+	pip3 install -r requirements.txt
+
+To install only one specific web framework you need one of these:
 
     pip3 install bottle sqlalchemy requests pyquery confusable_homoglyphs
 
-If you prefer flask, the alternative is: 
-
     pip3 install flask sqlalchemy requests pyquery confusable_homoglyphs
+
+    pip3 install fastapi sqlalchemy requests pyquery confusable_homoglyphs
 
 Once project and dependencies downloaded, request your private keys for the external data sources, as [indicated](https://github.com/mapto/CashWash/blob/master/private.py). These will give you access to the data sources, they will not extract the data. Data itself is fetched on-demand.
 
@@ -39,8 +49,9 @@ Then, running the server is simple, for bottle (recommended) just use:
 
 	python3 app_bottle.py
 
-Or respectively for flask:
+Or alternatively:
 
 	python3 app_flask.py
 
+	python3 app_fastapi.py
 
