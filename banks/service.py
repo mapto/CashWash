@@ -61,8 +61,10 @@ def account_from_iban(code, fetched=False):
 
 def preload_cached_accounts():
 	upsert_bank(jurisdiction_id=None, name="UNKNOWN", fetched=True)
+	cached = get_cached_accounts()
+	print("Number of cached accounts: %d" % len(cached))
 	
-	for code in get_cached_accounts():
+	for code in cached:
 		if len(code) < 12: # SWIFT
 			swift_banks[code] = bank_from_swift(code, fetched=True)
 			if len(code) == 11:

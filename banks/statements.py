@@ -4,6 +4,35 @@ Aims for generic SQL syntax"""
 from sqlalchemy import text, column, select
 from sqlalchemy import DateTime
 
+def get_transaction_log_statement():
+	s = """
+select
+	amount_usd,
+	tpo.name payee_org,
+	tpa.code payee_acc,
+	tpj.code payee_country,
+	tbo.name beneficiary_org,
+	tba.code beneficiary_acc,
+	tbj.code beneficiary_country,
+	currency,
+	tt.date_created date
+from "transaction" tt
+join account tpa on tpa.id=tt.payee_id
+join account tba on tba.id=tt.beneficiary_id
+join organisation tpo on tpo.id=tpa.owner_id
+join organisation tbo on tbo.id=tba.owner_id
+join bank tpb on tpa.bank_id=tpb.id
+join bank tbb on tba.bank_id=tbb.id
+join jurisdiction tpj on tpj.id=tpb.country_id
+join jurisdiction tbj on tbj.id=tbb.country_id
+	"""
+
+	subquery = text(s).columns()
+	return select([column("amount_usd"),\
+		column("payee_org"),column("payee_acc"),column("payee_country"),\
+		column("beneficiary_org"),column("beneficiary_acc"),column("beneficiary_country"),\
+		column("currency"),column("date", type_=DateTime)]).select_from(subquery)
+
 def get_transactions_statement():
 	s = """
 select
@@ -20,8 +49,8 @@ join account tba on tba.id=tt.beneficiary_id
 join organisation tpo on tpo.id=tpa.owner_id
 join organisation tbo on tbo.id=tba.owner_id
 	"""
-	subquery = text(s).columns()
 
+	subquery = text(s).columns()
 	return select([column("amount_usd"),\
 		column("payee_org"),column("payee_acc"),\
 		column("beneficiary_org"),column("beneficiary_acc"),\

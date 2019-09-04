@@ -9,6 +9,7 @@ from .api_bank_codes import fetch_account_info, get_account_bank_code, get_accou
 from .api_bank_codes import account_bank_code, get_cached_accounts
 
 from .statements import get_intermediaries_statement, get_cashflows_statement, get_transactions_statement, get_banks_statement
+from .statements import get_transaction_log_statement
 
 from .persistence import get_organisation_by_account, get_account_by_code, get_bank
 from .persistence import upsert_bank, upsert_account, insert_transaction, clean_local_accounts
