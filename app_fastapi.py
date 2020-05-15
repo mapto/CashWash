@@ -43,11 +43,11 @@ def _prepare_datatable_parameters(request):
 
 # API queries
 @app.get('/summary')
-def get_summary():
+async def get_summary():
 	return static_file("summary.json", root=static_path + "js") # bottle wants root path without trailing slash
 
 @app.get('/api/bank_codes/{code}')
-def query_bank_codes(code: str = None):
+async def query_bank_codes(code: str = None):
 	if not code:
 		raise HTTPException(status_code=405, detail="Cannot process empty code")
 	result = banks.fetch_account_info(code)
@@ -57,12 +57,12 @@ def query_bank_codes(code: str = None):
 
 @app.get('/api/open_corporates/{name}')
 @app.get('/api/open_corporates/{name}/{jurisdiction}')
-def query_open_corporates(name: str, jurisdiction: str = None):
+async def query_open_corporates(name: str, jurisdiction: str = None):
 	return organisations.search_entities(name, jurisdiction=jurisdiction)
 
 # Object requests
 @app.get('/owner/{account_code}')
-def get_organisation_by_account(account_code: str):
+async def get_organisation_by_account(account_code: str):
 	if not account_code:
 		raise HTTPException(status_code=405, detail="Empty code has no owner")		
 	org_id = banks.query_organisation_by_account_code(account_code)
@@ -70,20 +70,20 @@ def get_organisation_by_account(account_code: str):
 
 @app.get('/alias/{name}')
 @app.get('/alias/{name}/{country}')
-def get_alias_history(name: str, country: str=None):
+async def get_alias_history(name: str, country: str=None):
 	return query_open_corporates(name, country)
 
 
 # Datatables
 ## Transactions
 @app.get('/datatables/transactions')
-def get_datatable_transactions():
+async def get_datatable_transactions():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_transactions(*params)	
 	return response
 
 @app.get('/datatables/cashflows')
-def get_datatable_cashflows():
+async def get_datatable_cashflows():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_cashflows(*params)
 	return response
@@ -91,19 +91,19 @@ def get_datatable_cashflows():
 
 ## Organisations
 @app.get('/datatables/organisations')
-def get_datatable_organisations():
+async def get_datatable_organisations():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_organisations(*params)	
 	return response
 
 @app.get('/datatables/intermediaries')
-def get_datatable_intermediaries():
+async def get_datatable_intermediaries():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_intermediaries(*params)
 	return response
 
 @app.get('/datatables/aliases/{org_id}')
-def get_datatable_aliases(org_id: int):
+async def get_datatable_aliases(org_id: int):
 	if not org_id:
 		return datatable_empty
 
@@ -112,7 +112,7 @@ def get_datatable_aliases(org_id: int):
 	return response
 
 @app.get('/datatables/accounts/{org_id}')
-def get_datatable_accounts(org_id: int):
+async def get_datatable_accounts(org_id: int):
 	if not org_id:
 		return datatable_empty
 
@@ -121,7 +121,7 @@ def get_datatable_accounts(org_id: int):
 	return response
 
 @app.get('/datatables/incoming/{org_id}')
-def get_datatable_incoming(org_id: int):
+async def get_datatable_incoming(org_id: int):
 	if not org_id:
 		return datatable_empty
 
@@ -131,7 +131,7 @@ def get_datatable_incoming(org_id: int):
 
 
 @app.get('/datatables/outgoing/{org_id}')
-def get_datatable_outgoing(org_id: int):
+async def get_datatable_outgoing(org_id: int):
 	if not org_id:
 		return datatable_empty
 
@@ -142,7 +142,7 @@ def get_datatable_outgoing(org_id: int):
 
 ## Banks
 @app.get('/datatables/banks')
-def get_datatable_banks():
+async def get_datatable_banks():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_banks(*params)
 	return response
@@ -150,7 +150,7 @@ def get_datatable_banks():
 
 ## Jurisdictions
 @app.get('/datatables/jurisdictions')
-def get_datatable_jurisdictions():
+async def get_datatable_jurisdictions():
 	params = _prepare_datatable_parameters(request)
 	response = datatables.get_datatable_jurisdictions(*params)
 	return response
@@ -158,12 +158,12 @@ def get_datatable_jurisdictions():
 
 # Static resources
 @app.get('/<resource_type:re:(js|css|images)>/<filename:re:.*\.(js|css|png)>')
-def send_resource(resource_type, filename):
+async def send_resource(resource_type, filename):
 	return static_file(filename, root=static_path + resource_type)
 
 @app.get('/')
 @app.get('/<filename:re:.*\.html>')
-def send_page(filename='index.html'):
+async def send_page(filename='index.html'):
 	return static_file(filename, root=static_path[:-1])
 
 if __name__ == '__main__':
